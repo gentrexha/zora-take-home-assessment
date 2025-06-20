@@ -67,6 +67,10 @@ create_environment:
 data: requirements
 	$(PYTHON_INTERPRETER) ztha/dataset.py
 
+.PHONY: pipeline
+pipeline: requirements
+	$(PYTHON_INTERPRETER) -m ztha.pipeline
+
 
 #################################################################################
 # Self Documenting Commands                                                     #
