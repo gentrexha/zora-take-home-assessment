@@ -5,7 +5,7 @@ This module orchestrates the complete machine learning pipeline to predict
 collector churn, with a focus on interpretability and business actionability.
 """
 
-from ztha.config import CONFIG, log
+from ztha.config import CONFIG, log, set_seeds
 from ztha.dataset import DataLoader
 from ztha.features import FeatureEngineer
 from ztha.modeling.train import ModelTrainer
@@ -74,6 +74,8 @@ class ChurnPredictor:
 
 def main():
     """Main entry point for the pipeline."""
+    set_seeds(CONFIG.random_seed)
+    log.info(f"Random seeds set to {CONFIG.random_seed} for reproducibility.")
     predictor = ChurnPredictor()
     predictor.run_pipeline()
 

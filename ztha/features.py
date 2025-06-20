@@ -48,6 +48,9 @@ class FeatureEngineer:
         log.debug("Adding value proxy features...")
         features = self._add_value_proxy_features(features)
 
+        log.debug("Adding decline and recency features...")
+        features = self._add_decline_and_recency_features(features)
+
         log.debug("Adding risk indicator features...")
         features = self._add_risk_indicator_features(features)
 
@@ -279,6 +282,53 @@ class FeatureEngineer:
             features[f"collection_size_p{int(p * 100)}"] = self.activity_df.groupby(
                 "wallet_address"
             )["number_collected"].quantile(p)
+
+        return features
+
+    def _add_decline_and_recency_features(self, features: pd.DataFrame) -> pd.DataFrame:
+        """Adds features that capture declining activity and recency-based risk."""
+        assert self.activity_df is not None
+        assert self.reference_date is not None
+
+        # Dormancy flags based on days_since_last_collection
+        for days in [14, 30, 60]:
+            features[f"is_dormant_{days}d"] = (
+                features["days_since_last_collection"] > days
+            ).astype(int)
+
+        # Activity decline (30d vs 31-60d)
+        collections_30d = features["collections_last_30_days"]
+        collections_60d = features["collections_last_60_days"]
+        collections_31_to_60d = collections_60d - collections_30d
+        with np.errstate(divide="ignore", invalid="ignore"):
+            features["activity_decline_30_60_days"] = (
+                (collections_30d - collections_31_to_60d) / collections_31_to_60d
+            ).replace([np.inf, -np.inf], 0)
+
+        # Longest recent gap in last 90 days
+        recent_activity_90d = self.activity_df[
+            self.activity_df["date"] >= self.reference_date - timedelta(days=90)
+        ]
+        sorted_recent_activity = recent_activity_90d.sort_values(  # type: ignore
+            ["wallet_address", "date"]
+        )
+        recent_gaps = (
+            sorted_recent_activity.groupby("wallet_address")["date"].diff().dt.days
+        )
+        features["longest_recent_gap_90d"] = recent_gaps.groupby(
+            self.activity_df["wallet_address"]
+        ).max()
+
+        # Recent vs historical activity ratio
+        historical_daily_avg = (
+            features["total_collections"] / features["days_active"]
+        ).replace([np.inf, -np.inf], 0)
+        recent_daily_avg = (features["collections_last_30_days"] / 30).replace(
+            [np.inf, -np.inf], 0
+        )
+        features["recent_vs_historical_ratio"] = (
+            recent_daily_avg / historical_daily_avg
+        ).replace([np.inf, -np.inf], 0)
 
         return features
 

@@ -3,10 +3,12 @@ Configuration settings and logging setup for the churn prediction pipeline.
 """
 
 from pathlib import Path
+import random
 import sys
 from typing import Literal
 
 from loguru import logger
+import numpy as np
 from pydantic import BaseModel, Field, validator
 
 
@@ -40,6 +42,9 @@ class DataConfig(BaseModel):
     """Data-related configuration."""
 
     raw_data_path: str = Field(default="data/raw", description="Path to raw data files")
+    processed_path: str = Field(
+        default="data/processed", description="Path to processed data files"
+    )
     collectors_file: str = Field(
         default="collectors.csv", description="Collectors data filename"
     )
@@ -260,3 +265,10 @@ CONFIG = PipelineConfig()
 
 # Global logger instance
 log = ChurnLogger()
+
+
+def set_seeds(seed: int) -> None:
+    """Set random seeds for reproducibility."""
+    random.seed(seed)
+    np.random.seed(seed)
+    # Potentially add seeds for other libraries like torch, tensorflow if used.

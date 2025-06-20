@@ -1,339 +1,352 @@
 {
-  "auroc": 0.4875238095238095,
+  "auroc": 0.5105833333333333,
   "precision_at_top_k_percent": 0.3,
-  "precision_at_k_description": "Precision@Top10%",
+  "optimal_threshold": 0.22161588267453416,
+  "model_type": "GradientBoostingClassifier",
   "classification_report": {
     "0": {
-      "precision": 0.6846457942324934,
-      "recall": 0.6542857142857142,
-      "f1-score": 0.6688069797330674,
+      "precision": 0.9113862881304742,
+      "recall": 0.08142857142857143,
+      "f1-score": 0.13656044299329811,
       "support": 140.0
     },
     "1": {
-      "precision": 0.2682384388992231,
-      "recall": 0.2966666666666667,
-      "f1-score": 0.28119915221546543,
+      "precision": 0.31068643381768357,
+      "recall": 0.9633333333333333,
+      "f1-score": 0.46920986833956946,
       "support": 60.0
     },
-    "accuracy": 0.51,
+    "accuracy": 0.325,
     "macro avg": {
-      "precision": 0.47644211656585816,
-      "recall": 0.4754761904761905,
-      "f1-score": 0.4750030659742664,
+      "precision": 0.6110363609740789,
+      "recall": 0.5223809523809523,
+      "f1-score": 0.30288515566643376,
       "support": 200.0
     },
     "weighted avg": {
-      "precision": 0.5597235876325122,
-      "recall": 0.547,
-      "f1-score": 0.5525246314777867,
+      "precision": 0.731176331836637,
+      "recall": 0.346,
+      "f1-score": 0.2363552705971795,
       "support": 200.0
     }
   },
   "confusion_matrix": [
     [
-      86,
-      54
+      5,
+      135
     ],
     [
-      44,
-      16
+      0,
+      60
     ]
   ],
   "feature_importance": [
     {
-      "feature": "weekend_activity_ratio",
-      "importance": 0.0625812307219705
-    },
-    {
-      "feature": "comment_rate",
-      "importance": 0.05533226273447512
-    },
-    {
-      "feature": "meaningful_collection_ratio",
-      "importance": 0.048771243226231054
-    },
-    {
-      "feature": "social_engagement_score",
-      "importance": 0.04752284873017463
-    },
-    {
       "feature": "collection_size_variance",
-      "importance": 0.04654981864214429
-    },
-    {
-      "feature": "chain_concentration_ratio",
-      "importance": 0.04640806856560256
-    },
-    {
-      "feature": "account_age_days",
-      "importance": 0.0439070546097429
-    },
-    {
-      "feature": "collection_diversity_ratio",
-      "importance": 0.04133498993606433
+      "importance": 0.0595018578298582
     },
     {
       "feature": "data_completeness_score",
-      "importance": 0.039241413805335294
+      "importance": 0.054533194984689344
     },
     {
-      "feature": "collection_size_p90",
-      "importance": 0.03603931415067503
+      "feature": "weekend_activity_ratio",
+      "importance": 0.05374866564829885
     },
     {
-      "feature": "social_x_activity",
-      "importance": 0.033556926323388976
+      "feature": "meaningful_collection_ratio",
+      "importance": 0.04726095049408916
     },
     {
-      "feature": "collection_burst_frequency",
-      "importance": 0.03299253362917738
-    },
-    {
-      "feature": "collection_size_p75",
-      "importance": 0.032925449817479274
+      "feature": "comment_rate",
+      "importance": 0.046717332047886743
     },
     {
       "feature": "collection_frequency_per_month",
-      "importance": 0.03145538267505396
+      "importance": 0.04268988427545035
     },
     {
-      "feature": "top_10_pct_collection_size",
-      "importance": 0.0256572864039309
+      "feature": "social_engagement_score",
+      "importance": 0.04006569381380909
     },
     {
-      "feature": "recent_activity_ratio",
-      "importance": 0.023519581344861883
+      "feature": "account_age_days",
+      "importance": 0.03994705699936507
+    },
+    {
+      "feature": "collection_size_p90",
+      "importance": 0.03779073080623455
+    },
+    {
+      "feature": "collection_size_p75",
+      "importance": 0.035151652769340284
     },
     {
       "feature": "media_type_diversity_score",
-      "importance": 0.02333997967846653
+      "importance": 0.032203248187957195
     },
     {
       "feature": "avg_collection_size",
-      "importance": 0.02262528916752235
+      "importance": 0.029066860245998527
+    },
+    {
+      "feature": "collection_burst_frequency",
+      "importance": 0.02830509894179775
+    },
+    {
+      "feature": "collection_diversity_ratio",
+      "importance": 0.027083365776681814
     },
     {
       "feature": "time_between_collections_std",
-      "importance": 0.01950962291330555
+      "importance": 0.02542135176006012
     },
     {
-      "feature": "Ethereum",
-      "importance": 0.018760623426648713
+      "feature": "chain_concentration_ratio",
+      "importance": 0.022685224010482542
     },
     {
-      "feature": "Base",
-      "importance": 0.017877250123189945
-    },
-    {
-      "feature": "gif",
-      "importance": 0.017025971500001374
-    },
-    {
-      "feature": "collection_size_p25",
-      "importance": 0.015659845996898587
-    },
-    {
-      "feature": "video",
-      "importance": 0.015572272021254076
-    },
-    {
-      "feature": "collections_last_30_days",
-      "importance": 0.015443995973408182
-    },
-    {
-      "feature": "country_Japan",
-      "importance": 0.015299570825123154
-    },
-    {
-      "feature": "early_adopter_score",
-      "importance": 0.01279002763689482
-    },
-    {
-      "feature": "image",
-      "importance": 0.012722305074723937
-    },
-    {
-      "feature": "audio",
-      "importance": 0.011442196701644244
-    },
-    {
-      "feature": "referral_source_twitter",
-      "importance": 0.00915651961089465
-    },
-    {
-      "feature": "collection_size_p50",
-      "importance": 0.008906283633956208
-    },
-    {
-      "feature": "days_since_first_collection",
-      "importance": 0.008511091046729521
+      "feature": "social_x_activity",
+      "importance": 0.020510371894042777
     },
     {
       "feature": "collections_last_90_days",
-      "importance": 0.00825996694086866
+      "importance": 0.019921571299899004
+    },
+    {
+      "feature": "Ethereum",
+      "importance": 0.019216649340392175
+    },
+    {
+      "feature": "recent_activity_ratio",
+      "importance": 0.019048974306478138
+    },
+    {
+      "feature": "collection_size_p25",
+      "importance": 0.017960257144049557
+    },
+    {
+      "feature": "early_adopter_score",
+      "importance": 0.016437617927020663
+    },
+    {
+      "feature": "Base",
+      "importance": 0.015401022031872758
+    },
+    {
+      "feature": "gif",
+      "importance": 0.015206265375329165
+    },
+    {
+      "feature": "longest_recent_gap_90d",
+      "importance": 0.015081547197857098
+    },
+    {
+      "feature": "collections_last_30_days",
+      "importance": 0.013502033693916981
+    },
+    {
+      "feature": "country_Japan",
+      "importance": 0.013465878339413958
     },
     {
       "feature": "days_active",
-      "importance": 0.007611401310005687
+      "importance": 0.013356203827618924
     },
     {
-      "feature": "country_France",
-      "importance": 0.007386719064190077
+      "feature": "recent_vs_historical_ratio",
+      "importance": 0.012865451875235457
     },
     {
-      "feature": "avg_collected_per_day_active",
-      "importance": 0.007193570108296189
+      "feature": "collection_size_p50",
+      "importance": 0.012241765468500353
     },
     {
-      "feature": "primary_media_type_gif",
-      "importance": 0.006825099845885176
-    },
-    {
-      "feature": "Arbitrum",
-      "importance": 0.006782254807082958
-    },
-    {
-      "feature": "creator_loyalty_ratio",
-      "importance": 0.006290925294285504
-    },
-    {
-      "feature": "total_number_collected",
-      "importance": 0.004650627076373226
-    },
-    {
-      "feature": "primary_chain_Ethereum",
-      "importance": 0.004450703966401402
-    },
-    {
-      "feature": "declining_activity_trend",
-      "importance": 0.004169814638940909
-    },
-    {
-      "feature": "missing_token_ids_count",
-      "importance": 0.004132528018216887
-    },
-    {
-      "feature": "primary_chain_Base",
-      "importance": 0.004054313870413094
-    },
-    {
-      "feature": "max_single_collection",
-      "importance": 0.0040186582576931425
-    },
-    {
-      "feature": "collections_last_60_days",
-      "importance": 0.003985600691370263
-    },
-    {
-      "feature": "country_UK",
-      "importance": 0.003263209913050266
-    },
-    {
-      "feature": "days_since_last_collection",
-      "importance": 0.0032458391472154195
-    },
-    {
-      "feature": "referral_source_some random wallet address",
-      "importance": 0.0029962637994337587
-    },
-    {
-      "feature": "primary_chain_Zora",
-      "importance": 0.0029271534485165386
-    },
-    {
-      "feature": "referral_source_discord",
-      "importance": 0.0028198051543161734
-    },
-    {
-      "feature": "time_between_collections_avg",
-      "importance": 0.0027125211695485873
-    },
-    {
-      "feature": "primary_media_type_audio",
-      "importance": 0.0024762407802522927
-    },
-    {
-      "feature": "linked_twitter",
-      "importance": 0.0019260458314716744
-    },
-    {
-      "feature": "linked_instagram",
-      "importance": 0.0018496058065458484
-    },
-    {
-      "feature": "primary_media_type_image",
-      "importance": 0.0012548324077352071
-    },
-    {
-      "feature": "unique_collections",
-      "importance": 0.001241070878056131
-    },
-    {
-      "feature": "country_Australia",
-      "importance": 0.0009214404475991222
-    },
-    {
-      "feature": "country_Canada",
-      "importance": 3.631917849312407e-05
+      "feature": "activity_decline_30_60_days",
+      "importance": 0.012160677798734853
     },
     {
       "feature": "Zora",
-      "importance": 2.317501528321009e-05
+      "importance": 0.010653397614907715
     },
     {
-      "feature": "primary_media_type_video",
-      "importance": 1.9294461059554127e-05
+      "feature": "image",
+      "importance": 0.010454118984078213
     },
     {
-      "feature": "low_engagement_flag",
-      "importance": 1.2062993645745758e-05
+      "feature": "missing_token_ids_count",
+      "importance": 0.008688853828806515
     },
     {
       "feature": "total_collections",
-      "importance": 9.22282204642022e-06
+      "importance": 0.007945993836742696
     },
     {
-      "feature": "bio_length",
-      "importance": 4.613390341232844e-06
+      "feature": "primary_chain_Zora",
+      "importance": 0.007663713709826945
+    },
+    {
+      "feature": "country_France",
+      "importance": 0.0073133703824327274
+    },
+    {
+      "feature": "primary_media_type_gif",
+      "importance": 0.006972693135384664
+    },
+    {
+      "feature": "video",
+      "importance": 0.00683020228139607
+    },
+    {
+      "feature": "collections_last_60_days",
+      "importance": 0.006440433786467131
+    },
+    {
+      "feature": "avg_collected_per_day_active",
+      "importance": 0.006418523495382328
+    },
+    {
+      "feature": "referral_source_twitter",
+      "importance": 0.006250531881703712
+    },
+    {
+      "feature": "audio",
+      "importance": 0.00601674366517628
+    },
+    {
+      "feature": "Arbitrum",
+      "importance": 0.005858880997072666
     },
     {
       "feature": "primary_chain_Arbitrum",
-      "importance": 4.600084989133675e-06
+      "importance": 0.004885425682755048
     },
     {
-      "feature": "high_volume_collections",
-      "importance": 3.2484045920200034e-06
+      "feature": "time_between_collections_avg",
+      "importance": 0.00486002491048078
     },
     {
-      "feature": "collection_gaps_count_30d",
-      "importance": 1.4386380416440475e-06
+      "feature": "referral_source_some random wallet address",
+      "importance": 0.0048044982148637205
     },
     {
-      "feature": "referral_source_other",
-      "importance": 1.2214310231810252e-06
+      "feature": "country_Australia",
+      "importance": 0.0038918775876850983
+    },
+    {
+      "feature": "bio_length",
+      "importance": 0.0034807585510951895
+    },
+    {
+      "feature": "total_number_collected",
+      "importance": 0.0032990071952765
+    },
+    {
+      "feature": "primary_chain_Ethereum",
+      "importance": 0.0032719577356547023
+    },
+    {
+      "feature": "top_10_pct_collection_size",
+      "importance": 0.0029933351423167658
+    },
+    {
+      "feature": "creator_loyalty_ratio",
+      "importance": 0.002688928370072221
+    },
+    {
+      "feature": "days_since_first_collection",
+      "importance": 0.002599885207275935
+    },
+    {
+      "feature": "primary_chain_Base",
+      "importance": 0.0021345423370514203
+    },
+    {
+      "feature": "total_social_links",
+      "importance": 0.0013950782463352444
     },
     {
       "feature": "country_Other",
-      "importance": 1.8539191527057658e-07
+      "importance": 0.0011845753846139219
     },
     {
-      "feature": "total_comments",
-      "importance": 1.5486783541622986e-07
+      "feature": "primary_media_type_audio",
+      "importance": 0.0011037611474192593
     },
     {
-      "feature": "referral_source_farcaster",
-      "importance": 0.0
-    },
-    {
-      "feature": "primary_chain_nan",
-      "importance": 0.0
-    },
-    {
-      "feature": "referral_source_nan",
-      "importance": 0.0
+      "feature": "primary_media_type_image",
+      "importance": 0.0010992348037261205
     },
     {
       "feature": "is_whale",
+      "importance": 6.0700798758474786e-05
+    },
+    {
+      "feature": "high_volume_collections",
+      "importance": 3.4171203260831874e-05
+    },
+    {
+      "feature": "dormancy_periods_60d",
+      "importance": 2.997189490228118e-05
+    },
+    {
+      "feature": "max_single_collection",
+      "importance": 2.4370025166259043e-05
+    },
+    {
+      "feature": "country_UK",
+      "importance": 2.3401960194061124e-05
+    },
+    {
+      "feature": "unique_collections",
+      "importance": 2.1098244474423585e-05
+    },
+    {
+      "feature": "linked_farcaster",
+      "importance": 1.589923965895971e-05
+    },
+    {
+      "feature": "primary_media_type_video",
+      "importance": 1.3125141409150154e-05
+    },
+    {
+      "feature": "country_Canada",
+      "importance": 6.729904469758841e-06
+    },
+    {
+      "feature": "referral_source_other",
+      "importance": 6.365403241265718e-06
+    },
+    {
+      "feature": "linked_instagram",
+      "importance": 5.520024848158926e-06
+    },
+    {
+      "feature": "referral_source_farcaster",
+      "importance": 3.503101030125962e-06
+    },
+    {
+      "feature": "no_social_links_risk",
+      "importance": 2.8139761579971796e-06
+    },
+    {
+      "feature": "linked_twitter",
+      "importance": 1.3595931393218762e-06
+    },
+    {
+      "feature": "referral_source_discord",
+      "importance": 1.0905242947891704e-06
+    },
+    {
+      "feature": "declining_activity_trend",
+      "importance": 1.0373379211145381e-06
+    },
+    {
+      "feature": "days_since_last_collection",
+      "importance": 3.739871190167145e-08
+    },
+    {
+      "feature": "referral_source_nan",
       "importance": 0.0
     },
     {
@@ -341,7 +354,7 @@
       "importance": 0.0
     },
     {
-      "feature": "multi_chain_user",
+      "feature": "primary_chain_nan",
       "importance": 0.0
     },
     {
@@ -349,43 +362,7 @@
       "importance": 0.0
     },
     {
-      "feature": "long_gap_since_last_collection",
-      "importance": 0.0
-    },
-    {
-      "feature": "no_social_links_risk",
-      "importance": 0.0
-    },
-    {
-      "feature": "single_chain_risk",
-      "importance": 0.0
-    },
-    {
-      "feature": "has_username",
-      "importance": 0.0
-    },
-    {
-      "feature": "dormancy_periods_60d",
-      "importance": 0.0
-    },
-    {
-      "feature": "unique_creators",
-      "importance": 0.0
-    },
-    {
-      "feature": "unique_file_types",
-      "importance": 0.0
-    },
-    {
-      "feature": "unique_chains",
-      "importance": 0.0
-    },
-    {
-      "feature": "total_social_links",
-      "importance": 0.0
-    },
-    {
-      "feature": "linked_farcaster",
+      "feature": "has_display_name",
       "importance": 0.0
     },
     {
@@ -393,628 +370,60 @@
       "importance": 0.0
     },
     {
-      "feature": "has_display_name",
+      "feature": "multi_chain_user",
+      "importance": 0.0
+    },
+    {
+      "feature": "long_gap_since_last_collection",
+      "importance": 0.0
+    },
+    {
+      "feature": "single_chain_risk",
+      "importance": 0.0
+    },
+    {
+      "feature": "low_engagement_flag",
+      "importance": 0.0
+    },
+    {
+      "feature": "is_dormant_60d",
+      "importance": 0.0
+    },
+    {
+      "feature": "is_dormant_30d",
+      "importance": 0.0
+    },
+    {
+      "feature": "is_dormant_14d",
+      "importance": 0.0
+    },
+    {
+      "feature": "unique_chains",
+      "importance": 0.0
+    },
+    {
+      "feature": "has_username",
+      "importance": 0.0
+    },
+    {
+      "feature": "unique_file_types",
+      "importance": 0.0
+    },
+    {
+      "feature": "unique_creators",
+      "importance": 0.0
+    },
+    {
+      "feature": "total_comments",
+      "importance": 0.0
+    },
+    {
+      "feature": "collection_gaps_count_30d",
       "importance": 0.0
     },
     {
       "feature": "primary_media_type_nan",
       "importance": 0.0
     }
-  ],
-  "model_type": "GradientBoostingClassifier",
-  "evaluation_timestamp": "2025-06-20T16:08:26.884480",
-  "test_set_size": 200,
-  "k_percent_value": 0.1,
-  "top_k_sample_size": 20,
-  "predictions": {
-    "y_test": [
-      0,
-      0,
-      0,
-      0,
-      1,
-      0,
-      1,
-      0,
-      1,
-      1,
-      0,
-      0,
-      0,
-      1,
-      0,
-      0,
-      0,
-      1,
-      0,
-      1,
-      0,
-      1,
-      0,
-      1,
-      0,
-      1,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      1,
-      0,
-      1,
-      0,
-      0,
-      1,
-      0,
-      1,
-      1,
-      0,
-      1,
-      0,
-      0,
-      0,
-      0,
-      0,
-      1,
-      0,
-      0,
-      0,
-      0,
-      0,
-      1,
-      1,
-      0,
-      0,
-      0,
-      1,
-      1,
-      0,
-      1,
-      0,
-      0,
-      0,
-      1,
-      0,
-      0,
-      0,
-      0,
-      1,
-      0,
-      0,
-      1,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      1,
-      0,
-      0,
-      0,
-      1,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      1,
-      1,
-      1,
-      0,
-      1,
-      0,
-      0,
-      0,
-      1,
-      0,
-      0,
-      1,
-      0,
-      0,
-      0,
-      1,
-      0,
-      0,
-      0,
-      0,
-      0,
-      1,
-      1,
-      0,
-      0,
-      1,
-      1,
-      0,
-      1,
-      0,
-      0,
-      0,
-      0,
-      1,
-      1,
-      1,
-      0,
-      0,
-      1,
-      0,
-      1,
-      0,
-      0,
-      0,
-      1,
-      0,
-      1,
-      0,
-      1,
-      0,
-      0,
-      0,
-      1,
-      1,
-      1,
-      0,
-      1,
-      0,
-      0,
-      0,
-      1,
-      1,
-      1,
-      0,
-      0,
-      0,
-      0,
-      1,
-      1,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      1,
-      0,
-      0,
-      0,
-      1,
-      0,
-      0,
-      0,
-      1,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      1,
-      0
-    ],
-    "y_pred": [
-      0,
-      1,
-      0,
-      0,
-      0,
-      1,
-      0,
-      1,
-      0,
-      0,
-      0,
-      1,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      1,
-      0,
-      1,
-      0,
-      1,
-      0,
-      0,
-      1,
-      0,
-      1,
-      1,
-      0,
-      1,
-      0,
-      0,
-      0,
-      1,
-      0,
-      0,
-      0,
-      1,
-      1,
-      0,
-      0,
-      0,
-      1,
-      0,
-      1,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      1,
-      1,
-      0,
-      1,
-      0,
-      1,
-      1,
-      0,
-      0,
-      0,
-      0,
-      1,
-      0,
-      0,
-      1,
-      0,
-      0,
-      0,
-      0,
-      1,
-      0,
-      0,
-      0,
-      1,
-      1,
-      1,
-      1,
-      1,
-      0,
-      0,
-      0,
-      1,
-      1,
-      1,
-      0,
-      0,
-      0,
-      1,
-      1,
-      1,
-      0,
-      1,
-      0,
-      1,
-      0,
-      0,
-      0,
-      0,
-      0,
-      1,
-      1,
-      0,
-      1,
-      0,
-      0,
-      1,
-      1,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      1,
-      0,
-      1,
-      1,
-      0,
-      1,
-      0,
-      1,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      1,
-      0,
-      1,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      1,
-      0,
-      1,
-      1,
-      1,
-      0,
-      1,
-      0,
-      0,
-      0,
-      0,
-      1,
-      0,
-      0,
-      0,
-      1,
-      0,
-      1,
-      1,
-      1,
-      1,
-      0,
-      0,
-      1,
-      0,
-      0,
-      1,
-      0,
-      0,
-      0,
-      0,
-      1,
-      1,
-      0,
-      0,
-      0,
-      0,
-      0,
-      1,
-      0,
-      0,
-      0,
-      1,
-      0,
-      0,
-      1,
-      0,
-      1,
-      0,
-      0,
-      0,
-      0,
-      1,
-      1
-    ],
-    "y_pred_proba": [
-      0.40553412778353193,
-      0.5084395894957887,
-      0.4372928929721379,
-      0.40185237986517486,
-      0.3180791781173484,
-      0.5949314950185586,
-      0.22586452927601713,
-      0.6412035446563131,
-      0.22289750501167352,
-      0.3704117903624917,
-      0.32796100150274066,
-      0.6532597205240815,
-      0.4740222067607124,
-      0.45627736977182065,
-      0.4600417895014434,
-      0.32055894585833594,
-      0.2790525833467348,
-      0.38126734948066043,
-      0.23350970353306263,
-      0.35754870977019926,
-      0.5426053811031871,
-      0.2873546785437299,
-      0.502521732245172,
-      0.4172204900332279,
-      0.5113867738854599,
-      0.43682662033193354,
-      0.35260540305353405,
-      0.5726291246021757,
-      0.4262118411804547,
-      0.644214863167274,
-      0.561411667131421,
-      0.23479041375947127,
-      0.5244013062385584,
-      0.23340991630193333,
-      0.2206176866700323,
-      0.492195885657626,
-      0.6153935197680807,
-      0.28052741903599004,
-      0.34835593402286946,
-      0.4524740884646572,
-      0.5913875724690266,
-      0.5025490534167744,
-      0.23204313506043817,
-      0.4751858825042714,
-      0.2527736921417875,
-      0.5800489883336036,
-      0.35406519245951834,
-      0.5670037312696998,
-      0.22060178707843525,
-      0.48167383275151493,
-      0.3042155433342821,
-      0.43668222281624647,
-      0.30470955093415003,
-      0.28614639840083894,
-      0.5660100273009556,
-      0.5323409738028964,
-      0.3835126786025131,
-      0.6304994576834285,
-      0.42353722751951645,
-      0.7677861224504111,
-      0.5557848358528013,
-      0.2815192294094633,
-      0.26900721820212165,
-      0.35237150945258244,
-      0.39693961376931,
-      0.5586065262636377,
-      0.25399657507001455,
-      0.23656207474982582,
-      0.513108667068984,
-      0.41307053947781064,
-      0.4321825120201864,
-      0.29063227463678526,
-      0.269444266061024,
-      0.5261436012624232,
-      0.3563370138395798,
-      0.27311640077860877,
-      0.39725778939435935,
-      0.6962332099813469,
-      0.6394897004397605,
-      0.6598208346328988,
-      0.7100233018757194,
-      0.5785387231105503,
-      0.2968622872739218,
-      0.4568887468740345,
-      0.23836583248549212,
-      0.524152212519108,
-      0.6551920283010605,
-      0.5944123426521443,
-      0.21494826675957682,
-      0.22120684691524647,
-      0.24930029321072825,
-      0.5887336719753389,
-      0.7094241807356081,
-      0.5969341122078008,
-      0.3032288246894426,
-      0.5048273596049517,
-      0.44409170456831604,
-      0.5035026272519221,
-      0.4695367910528127,
-      0.36532426658386047,
-      0.23409187162947095,
-      0.22238921694833003,
-      0.2857375380653537,
-      0.586924309417717,
-      0.6661442448938264,
-      0.39653835754041267,
-      0.7009214130004058,
-      0.15657122387807984,
-      0.45463033528334434,
-      0.5258712087110863,
-      0.608278136016576,
-      0.3201874861385348,
-      0.3230319169257114,
-      0.44145977645964196,
-      0.31207392840850035,
-      0.3344389865937202,
-      0.4238131291558486,
-      0.40070291015272197,
-      0.5537623026195525,
-      0.22087069193774914,
-      0.6458179259385399,
-      0.5885588046757607,
-      0.4721901689440643,
-      0.5874599474810412,
-      0.29377666884118775,
-      0.5049834120175571,
-      0.39238657489695344,
-      0.29968234540485766,
-      0.2679106490058284,
-      0.4107347776329806,
-      0.38459628022249814,
-      0.3327099506500566,
-      0.3963599739625264,
-      0.30541680380116293,
-      0.43243063975784907,
-      0.34804712512547387,
-      0.2701526064167966,
-      0.5938500477803931,
-      0.4373394784556204,
-      0.592623163391053,
-      0.1976343237141861,
-      0.4092245375102817,
-      0.3926583833491924,
-      0.4263528754039049,
-      0.45194534026655275,
-      0.4195440812837876,
-      0.5039234732229976,
-      0.4029715651071607,
-      0.5645441864295202,
-      0.5757269583512585,
-      0.6026191210864157,
-      0.19479799038925308,
-      0.5377394170029244,
-      0.3921942811996944,
-      0.392790225639959,
-      0.3383149680959316,
-      0.4737042265639995,
-      0.5788897609802137,
-      0.25787039117961547,
-      0.4538342540135243,
-      0.42748864682718063,
-      0.5493337973137234,
-      0.32487306309197167,
-      0.506149541144523,
-      0.5293747094863054,
-      0.8051725335059662,
-      0.6284989449341728,
-      0.4950923278884277,
-      0.431212179483928,
-      0.6148105986602096,
-      0.2269704382864743,
-      0.2814424587417425,
-      0.5920941798527292,
-      0.4233453040834037,
-      0.4788403399709588,
-      0.3863230291719185,
-      0.47466387513548963,
-      0.5888093011797453,
-      0.5218221144080218,
-      0.22795634904666767,
-      0.3856310671532477,
-      0.3371961287309089,
-      0.27334921335055123,
-      0.416903606009327,
-      0.5170271245265835,
-      0.37154675820410804,
-      0.4193904840858871,
-      0.3358038623696569,
-      0.5056563982996746,
-      0.31121083679077405,
-      0.2550256381899644,
-      0.5543786260452913,
-      0.32837426065972125,
-      0.6031735596805781,
-      0.4470241666706521,
-      0.2773679822391955,
-      0.24931558829777062,
-      0.38143581644022245,
-      0.5532408243722788,
-      0.5363097089805596
-    ]
-  },
-  "evaluation_type": "5-Fold Cross-Validation",
-  "auroc_std": 0.022560908991272294,
-  "precision_at_top_k_percent_std": 0.06324555320336757
+  ]
 }

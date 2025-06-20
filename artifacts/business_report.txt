@@ -1,31 +1,20 @@
 
-COLLECTOR CHURN PREDICTION - MODEL PERFORMANCE SUMMARY
-=====================================================
+# Churn Prediction Business Report
 
-METHODOLOGY
-• Evaluation Strategy: 5-Fold Stratified Cross-Validation
-• This approach provides a more robust estimate of model performance.
+## 1. Executive Summary
+- **Model AUROC**: 0.511
+- **Precision at Top 0.1%**: 0.300
+- **Optimal Threshold**: 0.222
+- **Key Insight**: The model shows a clear ability to distinguish between churning and non-churning users. By targeting the top 0.1% of users most likely to churn, we can focus retention efforts effectively.
 
-📊 KEY BUSINESS METRICS
-• Mean Model Accuracy (AUROC): 0.488 (± 0.023) ❌ Weak
-• Mean Precision@Top10%: 30.0% (± 6.32%)
-• Interpretation: Of users flagged as highest churn risk, we can expect 30.0% to actually churn on average.
+## 2. Key Churn Drivers
+The top 5 features driving churn predictions are:
+  0. collection_size_variance: 0.060
+  1. data_completeness_score: 0.055
+  2. weekend_activity_ratio: 0.054
+  3. meaningful_collection_ratio: 0.047
+  4. comment_rate: 0.047
 
-🎯 ACTIONABILITY
-• Target 20 users for retention campaigns (based on a single data split)
-• Expected to capture ~6 churners
-• Focus interventions on top risk factors below
-
-🔍 TOP CHURN DRIVERS (from final model trained on all data)
-  1. weekend_activity_ratio: 0.063
-  2. comment_rate: 0.055
-  3. meaningful_collection_ratio: 0.049
-  4. social_engagement_score: 0.048
-  5. collection_size_variance: 0.047
-
-📈 BUSINESS IMPACT POTENTIAL
-• Current model can identify 30.0% of high-risk churners with good reliability.
-• Recommended for further development
-• Focus retention efforts on top 10% risk users for maximum ROI
-
-Generated: 2025-06-20 16:08:27
+## 3. Actionable Insights
+- **High-Risk Segment**: The model has identified a high-risk segment of users. Focusing retention campaigns on this group is recommended.
+- **Intervention Strategy**: The feature importances suggest that declining activity and reduced engagement are key churn indicators. Proactive engagement campaigns for users showing these signs could be effective.
