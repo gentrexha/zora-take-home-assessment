@@ -1,0 +1,21 @@
+{
+  "key_performance_indicators": {
+    "model_discriminative_power_auroc": "0.569",
+    "precision_for_top_risk_users": "0.350",
+    "description": "Of users flagged as top 10% churn risk, 35.0% actually churned"
+  },
+  "actionable_insights": {
+    "total_high_risk_users_identified": 20,
+    "expected_churners_in_high_risk_group": 7,
+    "top_churn_drivers": [
+      "file_type_concentration",
+      "collected_volatility",
+      "creator_diversity"
+    ]
+  },
+  "model_deployment_readiness": {
+    "auroc_threshold_met": false,
+    "precision_threshold_met": false,
+    "ready_for_production": false
+  }
+}

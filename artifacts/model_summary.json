@@ -1,0 +1,41 @@
+{
+  "model_type": "GradientBoostingClassifier",
+  "auroc": 0.569047619047619,
+  "precision_at_top_k_percent": 0.35,
+  "precision_at_k_description": "Precision@Top10%",
+  "overall_precision": 0.2857142857142857,
+  "overall_recall": 0.06666666666666667,
+  "overall_f1": 0.10810810810810811,
+  "total_features": 36,
+  "test_set_size": 200,
+  "training_timestamp": "2025-06-20T13:50:30.442713",
+  "top_5_features": [
+    {
+      "feature": "file_type_concentration",
+      "importance": 0.10548086964255418
+    },
+    {
+      "feature": "collected_volatility",
+      "importance": 0.10334710258439404
+    },
+    {
+      "feature": "creator_diversity",
+      "importance": 0.07807884031881474
+    },
+    {
+      "feature": "collection_diversity",
+      "importance": 0.07468524824256406
+    },
+    {
+      "feature": "account_age_days",
+      "importance": 0.07185537718951902
+    }
+  ],
+  "config_summary": {
+    "model_type": "gradient_boosting",
+    "test_size": 0.2,
+    "precision_at_k_percent": 0.1,
+    "whale_percentile": 0.8,
+    "recent_activity_days": 30
+  }
+}

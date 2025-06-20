@@ -1,0 +1,27 @@
+
+COLLECTOR CHURN PREDICTION - MODEL PERFORMANCE SUMMARY
+=====================================================
+
+📊 KEY BUSINESS METRICS
+• Model Accuracy (AUROC): 0.569 ❌ Weak
+• Precision@Top10%: 0.350 (35.0%)
+• Interpretation: Of users flagged as highest churn risk, 35.0% actually churn
+
+🎯 ACTIONABILITY
+• Target 20 users for retention campaigns
+• Expected to capture ~7 churners
+• Focus interventions on top risk factors below
+
+🔍 TOP CHURN DRIVERS
+  1. file_type_concentration: 0.105
+  2. collected_volatility: 0.103
+  3. creator_diversity: 0.078
+  4. collection_diversity: 0.075
+  5. account_age_days: 0.072
+
+📈 BUSINESS IMPACT POTENTIAL
+• Current model can identify 35.0% of high-risk churners accurately
+• Recommended for further development
+• Focus retention efforts on top 10% risk users for maximum ROI
+
+Generated: 2025-06-20 13:50:30

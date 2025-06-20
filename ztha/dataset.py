@@ -1,29 +1,86 @@
+"""
+Data loading utilities for the churn prediction pipeline.
+"""
+
 from pathlib import Path
+from typing import Optional, Tuple
 
-from loguru import logger
-from tqdm import tqdm
-import typer
+import pandas as pd
 
-from ztha.config import PROCESSED_DATA_DIR, RAW_DATA_DIR
-
-app = typer.Typer()
+from ztha.config import CONFIG, log
 
 
-@app.command()
-def main(
-    # ---- REPLACE DEFAULT PATHS AS APPROPRIATE ----
-    input_path: Path = RAW_DATA_DIR / "dataset.csv",
-    output_path: Path = PROCESSED_DATA_DIR / "dataset.csv",
-    # ----------------------------------------------
-):
-    # ---- REPLACE THIS WITH YOUR OWN CODE ----
-    logger.info("Processing dataset...")
-    for i in tqdm(range(10), total=10):
-        if i == 5:
-            logger.info("Something happened for iteration 5.")
-    logger.success("Processing dataset complete.")
-    # -----------------------------------------
+class DataLoader:
+    """Handles loading and basic preprocessing of collectors and activity data."""
 
+    def __init__(self, data_path: Optional[str] = None):
+        self.data_path = Path(data_path or CONFIG.data.raw_data_path)
 
-if __name__ == "__main__":
-    app()
+    def load_collectors(self) -> pd.DataFrame:
+        """Load and preprocess collectors data."""
+        log.info("Loading collectors data...")
+
+        collectors = pd.read_csv(self.data_path / CONFIG.data.collectors_file)
+
+        # Parse dates
+        collectors["account_created_at"] = pd.to_datetime(
+            collectors["account_created_at"]
+        )
+        collectors["churned_at_date"] = pd.to_datetime(collectors["churned_at_date"])
+
+        # Create binary churn target
+        collectors["is_churned"] = collectors["churned_at_date"].notna().astype(int)
+
+        # Log data summary
+        data_summary = {
+            "total_collectors": len(collectors),
+            "churn_rate": f"{collectors['is_churned'].mean():.2%}",
+            "churned_count": collectors["is_churned"].sum(),
+            "active_count": (collectors["is_churned"] == 0).sum(),
+        }
+        log.log_metrics(data_summary, "Collectors Data")
+
+        return collectors
+
+    def load_activity(self) -> pd.DataFrame:
+        """Load and preprocess collection activity data with chunked processing."""
+        log.info("Loading collection activity data...")
+        log.debug(f"Using chunk size: {CONFIG.data.chunk_size}")
+
+        activity_chunks = []
+        chunk_count = 0
+
+        for chunk in pd.read_csv(
+            self.data_path / CONFIG.data.activity_file, chunksize=CONFIG.data.chunk_size
+        ):
+            # Basic cleaning
+            chunk = chunk.dropna(subset=["wallet_address"])
+            chunk["date"] = pd.to_datetime(chunk["date"], errors="coerce")
+            activity_chunks.append(chunk)
+            chunk_count += 1
+            log.debug(f"Processed chunk {chunk_count} with {len(chunk)} records")
+
+        activity = pd.concat(activity_chunks, ignore_index=True)
+
+        # Remove rows with missing dates
+        initial_count = len(activity)
+        activity = activity.dropna(subset=["date"])
+
+        # Log activity data summary
+        activity_summary = {
+            "total_activities": len(activity),
+            "chunks_processed": chunk_count,
+            "date_range_start": str(activity["date"].min()),
+            "date_range_end": str(activity["date"].max()),
+            "unique_wallets": activity["wallet_address"].nunique(),
+            "missing_dates_removed": initial_count - len(activity),
+        }
+        log.log_metrics(activity_summary, "Activity Data")
+
+        return activity
+
+    def load_data(self) -> Tuple[pd.DataFrame, pd.DataFrame]:
+        """Load both collectors and activity data."""
+        collectors = self.load_collectors()
+        activity = self.load_activity()
+        return collectors, activity

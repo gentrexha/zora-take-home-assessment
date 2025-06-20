@@ -1,10 +1,28 @@
-# zora-take-home-assessment
+# Zora's Senior Data Scientist Take-Home Assessment - Collector Churn Analysis
 
 <a target="_blank" href="https://cookiecutter-data-science.drivendata.org/">
     <img src="https://img.shields.io/badge/CCDS-Project%20template-328F97?logo=cookiecutter" />
 </a>
 
-Zora's Senior Data Scientist Take-Home Assessment - Collector Churn Analysis
+## TODO: Write up
+
+Brief
+Write a short one-pager explaining your analysis.
+It should cover:
+● Approach and methodology: Explain your high-level approach to analyzing the
+data and predicting churn and your rationale for it.
+● Data analysis: What are the key insights from the data? What patterns or trends do
+you notice?
+● Model development: Describe the model you developed to predict churn. Which
+features did you select, and why?
+● Evaluation metrics: Which business-facing metric did you choose to evaluate?
+Why?
+● Interpretation of results: What conclusions can you draw? What are the most
+significant factors influencing churn?
+● Strategic recommendations: What are three product actions you would take to
+reduce churn? How would you prioritize them?
+● Limitations and considerations: Discuss any limitations of your analysis and how
+they might impact your conclusions.
 
 ## Project Organization
 

@@ -16,11 +16,23 @@ classifiers = [
     
 ]
 dependencies = [
+    "autoviz>=0.1.905",
+    "ipykernel>=6.29.5",
+    "joblib>=1.5.1",
+    "jupyter-bokeh>=4.0.5",
     "loguru",
+    "numpy<2.0",
+    "pandas>=2.0,<3.0",
     "pip",
+    "pre-commit>=4.2.0",
+    "pydantic>=2.11.7",
+    "pyright>=1.1.402",
     "pytest",
     "python-dotenv",
     "ruff",
+    "scikit-learn>=1.7.0",
+    "setuptools>=80.9.0",
+    "sweetviz>=2.3.1",
     "tqdm",
     "typer",
 ]
@@ -28,7 +40,8 @@ requires-python = "~=3.13.0"
 
 
 [tool.ruff]
-line-length = 99
+target-version = "py313"
+line-length = 88
 src = ["ztha"]
 include = ["pyproject.toml", "ztha/**/*.py"]
 
@@ -38,4 +51,3 @@ extend-select = ["I"]  # Add import sorting
 [tool.ruff.lint.isort]
 known-first-party = ["ztha"]
 force-sort-within-sections = true
-

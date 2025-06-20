@@ -4,7 +4,11 @@ from loguru import logger
 from tqdm import tqdm
 import typer
 
-from ztha.config import MODELS_DIR, PROCESSED_DATA_DIR
+from ztha.config import CONFIG
+
+MODELS_DIR = Path(CONFIG.artifacts_path)
+PROCESSED_DATA_DIR = Path(CONFIG.data.raw_data_path).parent / "processed"
+PROCESSED_DATA_DIR.mkdir(exist_ok=True)
 
 app = typer.Typer()
 
