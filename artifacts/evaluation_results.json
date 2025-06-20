@@ -1,148 +1,148 @@
 {
-  "auroc": 0.5244285714285715,
-  "auroc_std": 0.05340977727336096,
-  "precision_at_top_k_percent": 0.27,
-  "precision_at_top_k_percent_std": 0.08717797887081348,
-  "optimal_threshold": 0.30590639540281805,
+  "auroc": 0.5236666666666666,
+  "auroc_std": 0.05181722631819131,
+  "recall_at_top_k_percent": 0.09666666666666665,
+  "recall_at_top_k_percent_std": 0.03858612300930075,
+  "optimal_threshold": 0.2627651359875954,
   "model_type": "LogisticRegression",
-  "evaluation_type": "5-Fold Cross-Validation",
+  "evaluation_type": "cross_validation",
   "classification_report": {
     "0": {
-      "precision": 0.8563912630579298,
-      "recall": 0.18,
-      "f1-score": 0.26301113796407616,
+      "precision": 0.7342528735632184,
+      "recall": 0.1542857142857143,
+      "f1-score": 0.21707717042649244,
       "support": 140.0
     },
     "1": {
-      "precision": 0.325525193577108,
-      "recall": 0.9066666666666668,
-      "f1-score": 0.47594318216552856,
+      "precision": 0.32572947834608834,
+      "recall": 0.93,
+      "f1-score": 0.4781237058616977,
       "support": 60.0
     },
-    "accuracy": 0.398,
+    "accuracy": 0.38699999999999996,
     "macro avg": {
-      "precision": 0.5909582283175189,
-      "recall": 0.5433333333333333,
-      "f1-score": 0.36947716006480236,
+      "precision": 0.5299911759546534,
+      "recall": 0.5421428571428571,
+      "f1-score": 0.347600438144095,
       "support": 200.0
     },
     "weighted avg": {
-      "precision": 0.6971314422136832,
-      "recall": 0.398,
-      "f1-score": 0.32689075122451183,
+      "precision": 0.6116958549980794,
+      "recall": 0.38699999999999996,
+      "f1-score": 0.29539113105705395,
       "support": 200.0
     }
   },
   "confusion_matrix": [
     [
-      126,
-      574
+      108,
+      592
     ],
     [
-      28,
-      272
+      21,
+      279
     ]
   ],
   "feature_importance": [
     {
-      "feature": "social_x_activity",
-      "importance": 0.2601393725878665
-    },
-    {
       "feature": "account_age_days",
-      "importance": -0.23941496508930907
-    },
-    {
-      "feature": "is_whale",
-      "importance": -0.21416238115182085
-    },
-    {
-      "feature": "collection_frequency_per_month",
-      "importance": -0.1750071267957264
-    },
-    {
-      "feature": "max_single_collection",
-      "importance": 0.17125117849603813
-    },
-    {
-      "feature": "low_engagement_flag",
-      "importance": 0.1683256483511899
+      "importance": -0.19905042770265605
     },
     {
       "feature": "top_10_pct_collection_size",
-      "importance": -0.15386095677708325
+      "importance": -0.1852746407764458
+    },
+    {
+      "feature": "collection_frequency_per_month",
+      "importance": -0.17466601161880202
+    },
+    {
+      "feature": "low_engagement_flag",
+      "importance": 0.15908553011852064
     },
     {
       "feature": "country_France",
-      "importance": -0.15304650401784975
-    },
-    {
-      "feature": "total_social_links",
-      "importance": -0.14024856740308228
+      "importance": -0.15092652389927722
     },
     {
       "feature": "primary_media_type_gif",
-      "importance": 0.11864088758573552
-    },
-    {
-      "feature": "unique_file_types",
-      "importance": -0.11453756017362322
-    },
-    {
-      "feature": "linked_farcaster",
-      "importance": 0.10276447672307239
+      "importance": 0.11871020341746367
     },
     {
       "feature": "referral_source_farcaster",
-      "importance": 0.1024485701620247
+      "importance": 0.11537996743083047
+    },
+    {
+      "feature": "max_single_collection",
+      "importance": 0.11128489062996402
+    },
+    {
+      "feature": "is_whale",
+      "importance": -0.10483971060734587
+    },
+    {
+      "feature": "linked_farcaster",
+      "importance": 0.10332159505096407
     },
     {
       "feature": "primary_chain_Arbitrum",
-      "importance": 0.09939732027342461
+      "importance": 0.09947995350466743
+    },
+    {
+      "feature": "days_active",
+      "importance": 0.09087343897487252
     },
     {
       "feature": "country_Japan",
-      "importance": 0.08374178895115923
-    },
-    {
-      "feature": "primary_chain_Ethereum",
-      "importance": 0.050165159653193896
-    },
-    {
-      "feature": "country_UK",
-      "importance": 0.03479518565606307
-    },
-    {
-      "feature": "early_adopter_score",
-      "importance": -0.030886042950023562
+      "importance": 0.08532382654375416
     },
     {
       "feature": "days_since_last_collection",
-      "importance": 0.029629236886509838
+      "importance": 0.07563347484801125
     },
     {
-      "feature": "no_social_links_risk",
-      "importance": -0.027693749834828415
+      "feature": "unique_file_types",
+      "importance": -0.06344550149527989
     },
     {
-      "feature": "collection_gaps_count_30d",
-      "importance": 0.025028652211530895
+      "feature": "collection_size_p50",
+      "importance": 0.05991645875004187
+    },
+    {
+      "feature": "primary_chain_Ethereum",
+      "importance": 0.05134374910301198
+    },
+    {
+      "feature": "total_social_links",
+      "importance": 0.04147984295518109
+    },
+    {
+      "feature": "country_UK",
+      "importance": 0.027893623821472046
     },
     {
       "feature": "country_Other",
-      "importance": -0.017448001936706564
+      "importance": -0.02511828632371744
     },
     {
-      "feature": "social_engagement_score",
-      "importance": 0.00994092947571365
+      "feature": "collection_gaps_count_30d",
+      "importance": -0.024563888992608307
+    },
+    {
+      "feature": "no_social_links_risk",
+      "importance": -0.021046930847222565
+    },
+    {
+      "feature": "early_adopter_score",
+      "importance": 0.009802755547130117
     },
     {
       "feature": "referral_source_other",
-      "importance": -0.009927188765048325
+      "importance": -0.005757671702077306
     },
     {
       "feature": "primary_chain_Zora",
-      "importance": -0.005087256697625292
+      "importance": -0.0014407069784693732
     }
   ]
 }

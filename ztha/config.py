@@ -207,7 +207,7 @@ class PipelineConfig(BaseModel):
     data: DataConfig = Field(default_factory=DataConfig)
     features: FeatureConfig = Field(default_factory=FeatureConfig)
     model: ModelConfig = Field(default_factory=ModelConfig)
-    evaluation: EvaluationConfig = Field(default_factory=EvaluationConfig)
+    evaluation: EvaluationConfig = Field(default_factory=EvaluationConfig)  # type: ignore
 
     class Config:
         validate_assignment = True

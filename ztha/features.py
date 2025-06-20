@@ -104,7 +104,7 @@ class FeatureEngineer:
         X_filtered = X[high_variance_features]
 
         # Method 2: Correlation-based filtering (remove highly correlated features)
-        corr_matrix = X_filtered.corr().abs()
+        corr_matrix = X_filtered.corr().abs()  # type: ignore
         upper_triangle = corr_matrix.where(
             np.triu(np.ones(corr_matrix.shape), k=1).astype(bool)
         )
