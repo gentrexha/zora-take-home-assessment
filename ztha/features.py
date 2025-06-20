@@ -6,6 +6,7 @@ from datetime import timedelta
 
 import numpy as np
 import pandas as pd
+from scipy.stats import entropy
 
 from ztha.config import CONFIG, log
 
@@ -15,6 +16,8 @@ class FeatureEngineer:
 
     def __init__(self):
         self.reference_date = None
+        self.collectors_df = None
+        self.activity_df = None
 
     def engineer_features(
         self, collectors: pd.DataFrame, activity: pd.DataFrame
@@ -23,341 +26,311 @@ class FeatureEngineer:
         log.info("Engineering features...")
         log.log_config(CONFIG.features, "Feature Engineering")
 
-        # Set reference date for temporal features
+        # Set reference date and dataframes
         self.reference_date = activity["date"].max()
         log.info(f"Reference date: {self.reference_date}")
+        self.collectors_df = collectors.set_index("wallet_address")
+        self.activity_df = activity
 
-        # Build feature set step by step
-        log.debug("Building RFM features...")
-        features = self._build_rfm_features(activity)
+        # Start with the base collectors
+        features = pd.DataFrame(index=self.collectors_df.index)
 
-        log.debug("Adding behavioral features...")
-        features = self._add_behavioral_features(features, activity)
+        # Build feature set step-by-step
+        log.debug("Adding profile features...")
+        features = self._add_profile_features(features)
 
-        log.debug("Adding creator features...")
-        features = self._add_creator_features(features, activity)
+        log.debug("Adding activity summary features...")
+        features = self._add_activity_summary_features(features)
 
-        log.debug("Adding collector profile features...")
-        features = self._add_collector_profile_features(features, collectors)
+        log.debug("Adding temporal pattern features...")
+        features = self._add_temporal_pattern_features(features)
 
-        log.debug("Adding derived features...")
+        log.debug("Adding value proxy features...")
+        features = self._add_value_proxy_features(features)
+
+        log.debug("Adding risk indicator features...")
+        features = self._add_risk_indicator_features(features)
+
+        log.debug("Adding data quality features...")
+        features = self._add_data_quality_features(features)
+
+        log.debug("Adding derived and interaction features...")
         features = self._add_derived_features(features)
 
-        log.debug("Cleaning features...")
+        log.debug("Cleaning final features...")
         features = self._clean_features(features)
 
-        # Log feature engineering summary
-        feature_summary = {
-            "total_features": features.shape[1] - 1,  # Exclude target variable
-            "total_collectors": features.shape[0],
-            "churn_rate": f"{features['is_churned'].mean():.2%}",
-            "feature_categories": {
-                "rfm_enabled": CONFIG.features.include_rfm_features,
-                "behavioral_enabled": CONFIG.features.include_behavioral_features,
-                "social_enabled": CONFIG.features.include_social_features,
-                "demographic_enabled": CONFIG.features.include_demographic_features,
-            },
-        }
-        log.log_metrics(feature_summary, "Feature Engineering")
+        # Add target variable last
+        features["is_churned"] = self.collectors_df["is_churned"]
+
         log.success("Feature engineering completed successfully")
+        return features
+
+    def _add_profile_features(self, features: pd.DataFrame) -> pd.DataFrame:
+        """Adds basic profile features from the collectors table."""
+        assert self.collectors_df is not None
+        assert self.reference_date is not None
+        # Account Characteristics
+        features["account_age_days"] = (
+            self.reference_date - self.collectors_df["account_created_at"]
+        ).dt.days
+        features["has_username"] = self.collectors_df["username"].notna().astype(int)
+        features["has_display_name"] = (
+            self.collectors_df["display_name"].notna().astype(int)
+        )
+        features["has_bio"] = self.collectors_df["bio"].notna().astype(int)
+        features["bio_length"] = self.collectors_df["bio"].str.len().fillna(0)
+
+        # Social Media Integration
+        social_cols = ["linked_farcaster", "linked_instagram", "linked_twitter"]
+        for col in social_cols:
+            features[col] = self.collectors_df[col].astype(int)
+        features["total_social_links"] = self.collectors_df[social_cols].sum(axis=1)
 
         return features
 
-    def _build_rfm_features(self, activity: pd.DataFrame) -> pd.DataFrame:
-        """Build RFM (Recency, Frequency, Monetary) features."""
-        if not CONFIG.features.include_rfm_features:
-            return pd.DataFrame()
-
+    def _add_activity_summary_features(self, features: pd.DataFrame) -> pd.DataFrame:
+        """Adds features summarizing collection activity."""
+        assert self.activity_df is not None
         # Aggregate activity by wallet
-        wallet_activity = (
-            activity.groupby("wallet_address")
-            .agg(
-                {
-                    "date": ["min", "max", "count"],
-                    "number_collected": ["sum", "mean", "std"],
-                    "collection_address": "nunique",
-                    "chain_name": "nunique",
-                    "file_type": "nunique",
-                    "creator": "nunique",
-                    "commented": lambda x: x.sum(),
-                }
-            )
-            .round(2)
-        )
-
-        # Flatten column names
-        wallet_activity.columns = [
-            f"{col[0]}_{col[1]}" for col in wallet_activity.columns
-        ]
+        agg_cols = {
+            "date": ["count", "min", "max"],
+            "number_collected": ["sum", "mean", "std", "max"],
+            "collection_address": "nunique",
+            "chain_name": "nunique",
+            "file_type": "nunique",
+            "creator": "nunique",
+            "commented": "sum",
+        }
+        wallet_activity = self.activity_df.groupby("wallet_address").agg(agg_cols)
+        wallet_activity.columns = ["_".join(col) for col in wallet_activity.columns]
         wallet_activity = wallet_activity.rename(  # type: ignore
             columns={
-                "date_min": "first_activity_date",
-                "date_max": "last_activity_date",
-                "date_count": "total_activities",
-                "number_collected_sum": "total_collected",
-                "number_collected_mean": "avg_collected_per_activity",
-                "number_collected_std": "collected_volatility",
+                "date_count": "total_collections",
+                "date_min": "first_collection_date",
+                "date_max": "last_collection_date",
+                "number_collected_sum": "total_number_collected",
+                "number_collected_mean": "avg_collection_size",
+                "number_collected_std": "collection_size_variance",
+                "number_collected_max": "max_single_collection",
                 "collection_address_nunique": "unique_collections",
                 "chain_name_nunique": "unique_chains",
                 "file_type_nunique": "unique_file_types",
                 "creator_nunique": "unique_creators",
-                "commented_<lambda>": "total_comments",
+                "commented_sum": "total_comments",
             }
         )
 
-        # Calculate temporal RFM metrics (convert to numeric)
-        wallet_activity["days_since_last_activity"] = (
-            self.reference_date - wallet_activity["last_activity_date"]
+        # Collection Diversity
+        wallet_activity["collection_diversity_ratio"] = (
+            wallet_activity["unique_collections"] / wallet_activity["total_collections"]
+        )
+        wallet_activity["creator_loyalty_ratio"] = self.activity_df.groupby(
+            "wallet_address"
+        )["creator"].apply(
+            lambda x: x.value_counts().max() / len(x) if len(x) > 0 else 0
+        )
+        wallet_activity["chain_concentration_ratio"] = self.activity_df.groupby(
+            "wallet_address"
+        )["chain_name"].apply(
+            lambda x: x.value_counts().max() / len(x) if len(x) > 0 else 0
+        )
+
+        # Chain & Media Type Counts (One-hot encoded style)
+        chain_counts = pd.crosstab(
+            self.activity_df["wallet_address"], self.activity_df["chain_name"]
+        )
+        media_counts = pd.crosstab(
+            self.activity_df["wallet_address"], self.activity_df["file_type"]
+        )
+        wallet_activity = wallet_activity.join(chain_counts, how="left").join(
+            media_counts, how="left"
+        )
+
+        # Media type diversity
+        wallet_activity["media_type_diversity_score"] = self.activity_df.groupby(
+            "wallet_address"
+        )["file_type"].apply(
+            lambda x: entropy(x.value_counts(normalize=True)) if len(x) > 0 else 0
+        )
+
+        return features.join(wallet_activity, how="left")
+
+    def _add_temporal_pattern_features(self, features: pd.DataFrame) -> pd.DataFrame:
+        """Adds features related to the timing and patterns of activity."""
+        assert self.reference_date is not None
+        assert self.activity_df is not None
+        assert self.collectors_df is not None
+        # Recency and Tenure
+        features["days_since_first_collection"] = (
+            self.reference_date - features["first_collection_date"]
+        ).dt.days
+        features["days_since_last_collection"] = (
+            self.reference_date - features["last_collection_date"]
         ).dt.days
 
-        wallet_activity["days_active"] = (
-            wallet_activity["last_activity_date"]
-            - wallet_activity["first_activity_date"]
+        # Activity Window
+        features["days_active"] = (
+            features["last_collection_date"] - features["first_collection_date"]
         ).dt.days + 1
 
-        wallet_activity["activity_frequency"] = (
-            wallet_activity["total_activities"] / wallet_activity["days_active"]
-        )
-
-        # Drop datetime columns to avoid scaling issues
-        wallet_activity = wallet_activity.drop(
-            ["first_activity_date", "last_activity_date"], axis=1
-        )
-
-        # Handle infinite/null values
-        wallet_activity["activity_frequency"] = wallet_activity[
-            "activity_frequency"
-        ].replace([np.inf, -np.inf], np.nan)
-        wallet_activity["collected_volatility"] = wallet_activity[
-            "collected_volatility"
-        ].fillna(0)
-
-        return wallet_activity
-
-    def _add_behavioral_features(
-        self, features: pd.DataFrame, activity: pd.DataFrame
-    ) -> pd.DataFrame:
-        """Add behavioral pattern features."""
-        if not CONFIG.features.include_behavioral_features:
-            return features
-
-        # Recent activity (configurable time window)
-        assert self.reference_date is not None
-        recent_date = self.reference_date - timedelta(
-            days=CONFIG.features.recent_activity_days
-        )
-        recent_activity = (
-            activity[activity["date"] >= recent_date]
-            .groupby("wallet_address")
-            .agg(
-                {
-                    "date": "count",
-                    "number_collected": "sum",
-                    "commented": lambda x: x.sum(),
-                }
+        # Activity in last N days
+        for days in [30, 60, 90]:
+            recent_date = self.reference_date - timedelta(days=days)
+            recent_activity = (
+                self.activity_df[self.activity_df["date"] >= recent_date]
+                .groupby("wallet_address")["date"]
+                .count()
             )
-            .rename(  # type: ignore
-                columns={
-                    "date": "recent_activities",
-                    "number_collected": "recent_collected",
-                    "commented": "recent_comments",
-                }
-            )
-        )
+            features[f"collections_last_{days}_days"] = recent_activity
 
-        # Chain activity patterns
-        chain_activity = (
-            activity.groupby("wallet_address")["chain_name"]
-            .apply(lambda x: x.value_counts().max() / len(x) if len(x) > 0 else 0)
-            .rename("chain_concentration")  # type: ignore
-        )
+        # Activity Regularity
+        sorted_activity = self.activity_df.sort_values(["wallet_address", "date"])
+        time_diffs = sorted_activity.groupby("wallet_address")["date"].diff().dt.days
+        features["time_between_collections_avg"] = time_diffs.groupby(
+            self.activity_df["wallet_address"]
+        ).mean()
+        features["time_between_collections_std"] = time_diffs.groupby(
+            self.activity_df["wallet_address"]
+        ).std()
 
-        # File type preferences
-        file_type_activity = (
-            activity.groupby("wallet_address")["file_type"]
-            .apply(lambda x: x.value_counts().max() / len(x) if len(x) > 0 else 0)
-            .rename("file_type_concentration")  # type: ignore
-        )
+        # Weekend vs Weekday
+        features["weekend_activity_ratio"] = self.activity_df.groupby("wallet_address")[
+            "date"
+        ].apply(lambda x: (pd.to_datetime(x).dt.dayofweek >= 5).mean())
 
-        # Activity regularity (std dev of days between activities)
-        activity_regularity = (
-            activity.sort_values("date")
+        # Early Adopter Score
+        thirty_days_after_creation = pd.to_datetime(
+            self.collectors_df["account_created_at"]
+        ) + timedelta(days=30)
+        early_activity = self.activity_df.join(
+            thirty_days_after_creation.rename("deadline"), on="wallet_address"
+        )
+        early_collections = (
+            early_activity[early_activity["date"] <= early_activity["deadline"]]
             .groupby("wallet_address")["date"]
-            .apply(lambda x: x.diff().dt.days.std(ddof=0))
+            .count()
         )
-        activity_regularity.name = "activity_regularity_std"
-
-        # Weekend activity ratio
-        weekend_activity_ratio = activity.groupby("wallet_address")["date"].apply(
-            lambda x: (pd.to_datetime(x).dt.dayofweek >= 5).mean()
-        )
-        weekend_activity_ratio.name = "weekend_activity_ratio"
-
-        # Combine behavioral features
-        behavioral_features = pd.concat(
-            [
-                recent_activity,
-                chain_activity,
-                file_type_activity,
-                activity_regularity,
-                weekend_activity_ratio,
-            ],
-            axis=1,
-        )
-        behavioral_features = behavioral_features.fillna(0)
-
-        return features.join(behavioral_features, how="left").fillna(0)
-
-    def _add_creator_features(
-        self, features: pd.DataFrame, activity: pd.DataFrame
-    ) -> pd.DataFrame:
-        """Add creator-based features from activity data."""
-        if "creator" not in activity.columns:
-            features["is_creator"] = 0
-            features["creations_count"] = 0
-            features["creator_popularity_score"] = 0
-            return features
-
-        creator_stats = activity.groupby("creator").agg(
-            creations_count=("token_id", "nunique"),
-            creator_popularity_score=("number_collected", "sum"),
-        )
-        creator_stats.index.name = "wallet_address"
-
-        features = features.join(creator_stats, how="left")
-
-        features["is_creator"] = (~features["creations_count"].isna()).astype(int)
-
-        features[["creations_count", "creator_popularity_score"]] = features[
-            ["creations_count", "creator_popularity_score"]
-        ].fillna(0)
+        features["early_adopter_score"] = early_collections
 
         return features
 
-    def _add_collector_profile_features(
-        self, features: pd.DataFrame, collectors: pd.DataFrame
-    ) -> pd.DataFrame:
-        """Add collector profile and demographic features."""
-        collectors_clean = collectors.set_index("wallet_address")
+    def _add_value_proxy_features(self, features: pd.DataFrame) -> pd.DataFrame:
+        """Adds features related to the economic value of collections."""
+        assert self.activity_df is not None
+        # High Volume Collections
+        features["high_volume_collections"] = (
+            self.activity_df[self.activity_df["number_collected"] > 100]
+            .groupby("wallet_address")["date"]
+            .count()
+        )
 
-        profile_features = pd.DataFrame(index=collectors_clean.index)
-
-        if CONFIG.features.include_social_features:
-            # Social engagement score
-            profile_features["social_score"] = (
-                collectors_clean["linked_farcaster"].astype(int)
-                + collectors_clean["linked_instagram"].astype(int)
-                + collectors_clean["linked_twitter"].astype(int)
+        # Whale Behavior
+        features["is_whale"] = (
+            features["total_number_collected"]
+            >= features["total_number_collected"].quantile(
+                CONFIG.features.whale_percentile
             )
+        ).astype(int)
 
-            # Individual social platform indicators
-            profile_features["has_farcaster"] = collectors_clean[
-                "linked_farcaster"
-            ].astype(int)
-            profile_features["has_instagram"] = collectors_clean[
-                "linked_instagram"
-            ].astype(int)
-            profile_features["has_twitter"] = collectors_clean["linked_twitter"].astype(
-                int
-            )
+        # Top 10% Collection Size
+        features["top_10_pct_collection_size"] = self.activity_df.groupby(
+            "wallet_address"
+        )["number_collected"].apply(lambda x: x.quantile(0.9) if not x.empty else 0)
 
-        # Account characteristics
-        profile_features["account_age_days"] = (
-            self.reference_date - collectors_clean["account_created_at"]
-        ).dt.days
+        # Collection Size Percentiles
+        for p in [0.25, 0.50, 0.75, 0.90]:
+            features[f"collection_size_p{int(p * 100)}"] = self.activity_df.groupby(
+                "wallet_address"
+            )["number_collected"].quantile(p)
 
-        if CONFIG.features.include_demographic_features:
-            # Referral source patterns
-            profile_features["referral_organic"] = (
-                collectors_clean["referral_source"]
-                .isin(["twitter", "farcaster"])
-                .astype(int)
-            )
-            profile_features["referral_discord"] = (
-                collectors_clean["referral_source"] == "discord"
-            ).astype(int)
+        return features
 
-            # Geographic indicators
-            profile_features["is_us"] = (collectors_clean["country"] == "USA").astype(
-                int
-            )
-            profile_features["is_europe"] = (
-                collectors_clean["country"]
-                .isin(["UK", "Germany", "France"])
-                .astype(int)
-            )
+    def _add_risk_indicator_features(self, features: pd.DataFrame) -> pd.DataFrame:
+        """Adds features that are direct signals of churn risk."""
+        assert self.activity_df is not None
+        # Declining Activity Trend (simple version)
+        activity_30d = features["collections_last_30_days"]
+        activity_30_to_60d = features["collections_last_60_days"] - activity_30d
+        features["declining_activity_trend"] = (
+            activity_30d < activity_30_to_60d
+        ).astype(int)
 
-        # Add target variable
-        profile_features["is_churned"] = collectors_clean["is_churned"]
+        # Low Engagement Flag
+        comment_rate = features["total_comments"] / features["total_collections"]
+        features["low_engagement_flag"] = (
+            comment_rate < comment_rate.quantile(0.25)
+        ).astype(int)
 
-        return features.join(profile_features, how="inner")
+        # Other Risk Flags
+        features["single_chain_risk"] = (features["unique_chains"] == 1).astype(int)
+        features["no_social_links_risk"] = (features["total_social_links"] == 0).astype(
+            int
+        )
+        features["long_gap_since_last_collection"] = (
+            features["days_since_last_collection"] > 60
+        ).astype(int)
+        features["meaningful_collection_ratio"] = (
+            self.activity_df[self.activity_df["number_collected"] > 1]
+            .groupby("wallet_address")
+            .size()
+            / features["total_collections"]
+        )
+
+        return features
+
+    def _add_data_quality_features(self, features: pd.DataFrame) -> pd.DataFrame:
+        """Adds features about the completeness of the data for each user."""
+        assert self.activity_df is not None
+        missing_counts = (
+            self.activity_df.isna().groupby(self.activity_df["wallet_address"]).sum()
+        )
+        features["missing_dates_count"] = missing_counts["date"]
+        features["missing_token_ids_count"] = missing_counts["token_id"]
+        features["data_completeness_score"] = 1 - (
+            missing_counts.sum(axis=1)
+            / (len(self.activity_df.columns) * features["total_collections"])
+        )
+        return features
 
     def _add_derived_features(self, features: pd.DataFrame) -> pd.DataFrame:
         """Add derived and interaction features."""
-        # Engagement ratios
-        features["comment_rate"] = (
-            features["total_comments"] / features["total_activities"]
-        )
-        features["collection_diversity"] = (
-            features["unique_collections"] / features["total_activities"]
-        )
-        features["creator_diversity"] = (
-            features["unique_creators"] / features["total_activities"]
-        )
-        features["avg_collected_per_day"] = (
-            features["total_collected"] / features["days_active"]
-        )
-
-        # Recent vs historical activity ratios
-        features["recent_activity_ratio"] = (
-            features["recent_activities"] / features["total_activities"]
-        )
-        features["recent_collection_ratio"] = (
-            features["recent_collected"] / features["total_collected"]
-        )
-
-        # Value segmentation features
-        features["is_whale"] = (
-            features["total_collected"]
-            >= features["total_collected"].quantile(CONFIG.features.whale_percentile)
-        ).astype(int)
-
-        # Early adopter identification
-        features["is_early_adopter"] = (
-            (
-                features["creator_diversity"]
-                >= features["creator_diversity"].quantile(
-                    CONFIG.features.early_adopter_creator_percentile
-                )
+        # Ratios (handle division by zero)
+        with np.errstate(divide="ignore", invalid="ignore"):
+            features["collection_frequency_per_month"] = features[
+                "total_collections"
+            ] / (features["account_age_days"] / 30)
+            features["comment_rate"] = (
+                features["total_comments"] / features["total_collections"]
             )
-            & (
-                features["account_age_days"]
-                >= features["account_age_days"].quantile(
-                    CONFIG.features.early_adopter_account_age_percentile
-                )
+            features["avg_collected_per_day_active"] = (
+                features["total_number_collected"] / features["days_active"]
             )
-        ).astype(int)
+            features["recent_activity_ratio"] = (
+                features["collections_last_30_days"] / features["total_collections"]
+            )
+            features["multi_chain_user"] = (features["unique_chains"] > 1).astype(int)
 
-        # Activity intensity features
-        features["activity_intensity"] = (
-            features["total_activities"] / features["account_age_days"]
-        )
-        features["collection_intensity"] = (
-            features["total_collected"] / features["account_age_days"]
+        # Composite score example
+        features["social_engagement_score"] = features["comment_rate"].fillna(0) * (
+            1 + features["total_social_links"]
         )
 
         return features
 
     def _clean_features(self, features: pd.DataFrame) -> pd.DataFrame:
         """Clean and prepare final feature set."""
-        # Replace infinite values with NaN, then fill with appropriate values
+        # Drop temporary columns
+        features = features.drop(
+            columns=["first_collection_date", "last_collection_date"], errors="ignore"
+        )
+
+        # Replace infinite values with NaN
         features = features.replace([np.inf, -np.inf], np.nan)
 
-        # Fill NaN values with median for numeric columns (except target)
-        numeric_columns = features.select_dtypes(include=[np.number]).columns
-        numeric_columns = [col for col in numeric_columns if col != "is_churned"]
-
-        for col in numeric_columns:
-            features[col] = features[col].fillna(features[col].median())
+        # Fill NaNs. This can be improved with more sophisticated imputation.
+        for col in features.columns:
+            if features[col].dtype in [np.number, "float64", "int64"]:
+                features[col] = features[col].fillna(0)  # Simple fill with 0 for now
 
         return features
