@@ -7,6 +7,7 @@ from datetime import timedelta
 import numpy as np
 import pandas as pd
 from scipy.stats import entropy
+from sklearn.feature_selection import SelectKBest, f_classif
 
 from ztha.config import CONFIG, log
 
@@ -18,6 +19,7 @@ class FeatureEngineer:
         self.reference_date = None
         self.collectors_df = None
         self.activity_df = None
+        self.selected_features = None
 
     def engineer_features(
         self, collectors: pd.DataFrame, activity: pd.DataFrame
@@ -66,11 +68,82 @@ class FeatureEngineer:
         log.debug("Cleaning final features...")
         features = self._clean_features(features)
 
-        # Add target variable last
+        # Add target variable
         features["is_churned"] = self.collectors_df["is_churned"]
+
+        # Apply feature selection if requested
+        if CONFIG.features.apply_feature_selection:
+            log.info(
+                f"Applying feature selection to reduce from {len(features.columns) - 1} to {CONFIG.features.max_features} features..."
+            )
+            features = self._apply_feature_selection(
+                features, CONFIG.features.max_features
+            )
 
         log.success("Feature engineering completed successfully")
         return features
+
+    def _apply_feature_selection(
+        self, features: pd.DataFrame, n_features: int = 25
+    ) -> pd.DataFrame:
+        """Apply multiple feature selection techniques to reduce dimensionality."""
+        X = features.drop(["is_churned"], axis=1)
+        y = features["is_churned"]
+
+        # Handle any remaining NaN values
+        X = X.fillna(0)
+
+        # Method 1: Remove low-variance features (constant or nearly constant)
+        variances = X.var()
+        high_variance_mask = variances > CONFIG.features.variance_threshold
+        high_variance_features = high_variance_mask[high_variance_mask].index.tolist()
+        log.info(
+            f"Removed {len(X.columns) - len(high_variance_features)} low-variance features"
+        )
+
+        X_filtered = X[high_variance_features]
+
+        # Method 2: Correlation-based filtering (remove highly correlated features)
+        corr_matrix = X_filtered.corr().abs()
+        upper_triangle = corr_matrix.where(
+            np.triu(np.ones(corr_matrix.shape), k=1).astype(bool), other=0.0
+        )
+        high_corr_features = [
+            column
+            for column in upper_triangle.columns
+            if (upper_triangle[column] > CONFIG.features.correlation_threshold).any()
+        ]
+
+        X_filtered = X_filtered.drop(columns=high_corr_features)
+        log.info(f"Removed {len(high_corr_features)} highly correlated features")
+
+        # Method 3: If still too many features, apply univariate selection
+        if len(X_filtered.columns) > n_features:
+            # Use f_classif for univariate feature selection
+            selector = SelectKBest(
+                score_func=f_classif, k=min(n_features, len(X_filtered.columns))
+            )
+            selector.fit(X_filtered, y)
+            selected_feature_names = X_filtered.columns[selector.get_support()].tolist()
+
+            log.info(
+                f"Univariate selection kept {len(selected_feature_names)} features"
+            )
+        else:
+            selected_feature_names = X_filtered.columns.tolist()
+
+        # Store selected features for future reference
+        self.selected_features = selected_feature_names
+
+        # Create final feature set
+        final_features = features[selected_feature_names + ["is_churned"]].copy()
+
+        log.info(
+            f"Feature selection complete: {len(final_features.columns) - 1} features selected"
+        )
+        log.info(f"Top selected features: {selected_feature_names[:10]}")
+
+        return final_features
 
     def _add_profile_features(self, features: pd.DataFrame) -> pd.DataFrame:
         """Adds basic profile features from the collectors table."""
@@ -170,7 +243,7 @@ class FeatureEngineer:
             lambda x: entropy(x.value_counts(normalize=True)) if len(x) > 0 else 0
         )
 
-        return features.join(wallet_activity, how="left")
+        return features.join(wallet_activity, how="left")  # type: ignore
 
     def _add_temporal_pattern_features(self, features: pd.DataFrame) -> pd.DataFrame:
         """Adds features related to the timing and patterns of activity."""

@@ -95,17 +95,49 @@ class FeatureConfig(BaseModel):
         default=True, description="Include demographic and geographic features"
     )
 
+    # Feature selection configuration
+    apply_feature_selection: bool = Field(
+        default=True, description="Apply feature selection to reduce dimensionality"
+    )
+    max_features: int = Field(
+        default=25, ge=5, le=100, description="Maximum number of features to select"
+    )
+    variance_threshold: float = Field(
+        default=0.01,
+        ge=0.0,
+        le=0.1,
+        description="Minimum variance threshold for feature selection",
+    )
+    correlation_threshold: float = Field(
+        default=0.95,
+        ge=0.8,
+        le=0.99,
+        description="Maximum correlation threshold for feature selection",
+    )
+
 
 class ModelConfig(BaseModel):
     """Model training configuration."""
 
     model_type: Literal["gradient_boosting", "logistic_regression"] = Field(
-        default="gradient_boosting", description="Type of model to train"
+        default="logistic_regression", description="Type of model to train"
     )
     test_size: float = Field(
         default=0.2, ge=0.1, le=0.5, description="Proportion of data for testing"
     )
     random_state: int = Field(default=42, description="Random seed for reproducibility")
+
+    # SMOTE configuration
+    apply_smote: bool = Field(
+        default=True, description="Apply SMOTE for training data balancing"
+    )
+    smote_sampling_strategy: str = Field(
+        default="auto",
+        description="SMOTE sampling strategy (auto, minority, majority, not minority, not majority, all)",
+    )
+    smote_k_neighbors: int = Field(
+        default=5, ge=1, le=20, description="Number of neighbors for SMOTE"
+    )
 
     # Gradient Boosting parameters
     gb_n_estimators: int = Field(

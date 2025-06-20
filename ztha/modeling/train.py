@@ -10,11 +10,49 @@ from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import StratifiedKFold
 from sklearn.preprocessing import StandardScaler
+from sklearn.utils import resample
 from sklearn.utils.class_weight import compute_sample_weight
 import typer
 
 from ztha.config import CONFIG, log
 from ztha.modeling.predict import ModelEvaluator
+
+
+def random_oversample(X, y, random_state=42):
+    """Random oversampling using sklearn.utils.resample to balance classes."""
+    # Combine X and y for resampling
+    df = pd.concat([X, y], axis=1)
+
+    # Get class counts
+    class_counts = y.value_counts()
+    majority_count = class_counts.max()
+
+    # Oversample minority classes
+    balanced_dfs = []
+    for class_label in class_counts.index:
+        class_df = df[df[y.name] == class_label]
+
+        if len(class_df) < majority_count:
+            # Oversample this class
+            oversampled = resample(
+                class_df,
+                replace=True,
+                n_samples=majority_count,
+                random_state=random_state,
+            )
+            balanced_dfs.append(oversampled)
+        else:
+            balanced_dfs.append(class_df)
+
+    # Combine all classes
+    balanced_df = pd.concat(balanced_dfs, ignore_index=True)
+
+    # Split back into X and y
+    X_balanced = balanced_df.drop(columns=[y.name])
+    y_balanced = balanced_df[y.name]
+
+    return X_balanced, y_balanced
+
 
 MODELS_DIR = Path(CONFIG.artifacts_path)
 PROCESSED_DATA_DIR = Path(CONFIG.data.raw_data_path).parent / "processed"
@@ -71,6 +109,9 @@ class ModelTrainer:
         y = features["is_churned"]
         self.feature_names = X.columns.tolist()
 
+        # Data validation checks
+        self._validate_data(X, pd.Series(y) if not isinstance(y, pd.Series) else y)
+
         skf = StratifiedKFold(
             n_splits=5, shuffle=True, random_state=CONFIG.model.random_state
         )
@@ -81,22 +122,64 @@ class ModelTrainer:
             X_train, X_test = X.iloc[train_index], X.iloc[test_index]
             y_train, y_test = y.iloc[train_index], y.iloc[test_index]
 
+            # Apply SMOTE to training data if configured
+            if CONFIG.model.apply_smote:
+                log.debug("Applying random oversampling to balance training data...")
+                X_train_balanced, y_train_balanced = random_oversample(
+                    X_train, y_train, random_state=CONFIG.model.random_state
+                )
+
+                # Log balancing results
+                original_counts = y_train.value_counts().sort_index()
+                balanced_counts = (
+                    pd.Series(y_train_balanced).value_counts().sort_index()
+                )
+                log.info(
+                    f"Random oversampling applied - Original: {original_counts.tolist()}, Balanced: {balanced_counts.tolist()}"
+                )
+
+                X_train_for_scaling = X_train_balanced
+                y_train_for_model = y_train_balanced
+            else:
+                X_train_for_scaling = X_train
+                y_train_for_model = y_train
+
             # Scale features for the current fold
             scaler = StandardScaler()
-            X_train_scaled = scaler.fit_transform(X_train)
+            X_train_scaled = scaler.fit_transform(X_train_for_scaling)
             X_test_scaled = scaler.transform(X_test)
 
             # Train model
             model = self._get_model()
             if isinstance(model, GradientBoostingClassifier):
-                sample_weights = compute_sample_weight(
-                    class_weight="balanced", y=y_train
-                )
-                model.fit(X_train_scaled, y_train, sample_weight=sample_weights)
+                if CONFIG.model.apply_smote:
+                    # No need for sample weights when data is balanced by SMOTE
+                    model.fit(X_train_scaled, y_train_for_model)
+                else:
+                    # Ensure y is a pandas Series for compute_sample_weight
+                    y_for_weights = (
+                        pd.Series(y_train_for_model)
+                        if not isinstance(y_train_for_model, pd.Series)
+                        else y_train_for_model
+                    )
+                    sample_weights = compute_sample_weight(
+                        class_weight="balanced", y=y_for_weights
+                    )
+                    model.fit(
+                        X_train_scaled, y_train_for_model, sample_weight=sample_weights
+                    )
             else:
-                model.fit(X_train_scaled, y_train)
+                if CONFIG.model.apply_smote:
+                    # No need for class_weight when data is balanced by SMOTE
+                    model_params = {
+                        "max_iter": CONFIG.model.lr_max_iter,
+                        "C": CONFIG.model.lr_C,
+                        "random_state": CONFIG.model.random_state,
+                    }
+                    model = LogisticRegression(**model_params)
+                model.fit(X_train_scaled, y_train_for_model)
 
-            # Evaluate model
+            # Evaluate model on unbalanced test data
             eval_results = self.evaluator.evaluate_model(
                 model, scaler, self.feature_names, np.asarray(X_test_scaled), y_test
             )
@@ -129,14 +212,39 @@ class ModelTrainer:
 
         # Train final model on all data
         log.info("Training final model on the entire dataset...")
-        self.scaler.fit(X)
-        X_scaled = self.scaler.transform(X)
-        final_model = self._get_model()
-        if isinstance(final_model, GradientBoostingClassifier):
-            sample_weights = compute_sample_weight(class_weight="balanced", y=y)
-            final_model.fit(X_scaled, y, sample_weight=sample_weights)
+
+        # Apply SMOTE to full dataset for final model if configured
+        if CONFIG.model.apply_smote:
+            log.info("Applying random oversampling to full dataset for final model...")
+            X_balanced, y_balanced = random_oversample(
+                X, y, random_state=CONFIG.model.random_state
+            )
+
+            self.scaler.fit(X_balanced)
+            X_scaled = self.scaler.transform(X_balanced)
+            final_model = self._get_model()
+
+            if isinstance(final_model, GradientBoostingClassifier):
+                final_model.fit(X_scaled, y_balanced)
+            else:
+                # Adjust logistic regression for balanced data
+                model_params = {
+                    "max_iter": CONFIG.model.lr_max_iter,
+                    "C": CONFIG.model.lr_C,
+                    "random_state": CONFIG.model.random_state,
+                }
+                final_model = LogisticRegression(**model_params)
+                final_model.fit(X_scaled, y_balanced)
         else:
-            final_model.fit(X_scaled, y)
+            self.scaler.fit(X)
+            X_scaled = self.scaler.transform(X)
+            final_model = self._get_model()
+            if isinstance(final_model, GradientBoostingClassifier):
+                sample_weights = compute_sample_weight(class_weight="balanced", y=y)
+                final_model.fit(X_scaled, y, sample_weight=sample_weights)
+            else:
+                final_model.fit(X_scaled, y)
+
         log.success("Final model training complete.")
 
         # Add feature importance from the final model to the report
@@ -146,6 +254,51 @@ class ModelTrainer:
         final_report["feature_names"] = self.feature_names
 
         return final_model, self.scaler, final_report
+
+    def _validate_data(self, X: pd.DataFrame, y: pd.Series) -> None:
+        """Validate data quality and log warnings for potential issues."""
+        log.info("=== DATA VALIDATION ===")
+
+        # Check for missing values
+        missing_counts = X.isnull().sum()
+        if missing_counts.any():
+            missing_features_count = (missing_counts > 0).sum()
+            log.warning(f"Found missing values in {missing_features_count} features")
+
+        # Check for infinite values
+        inf_counts = pd.Series(
+            [np.isinf(X[col]).sum() for col in X.columns], index=X.columns
+        )
+        if inf_counts.any():
+            inf_features_count = (inf_counts > 0).sum()
+            log.warning(f"Found infinite values in {inf_features_count} features")
+
+        # Check class balance
+        class_balance = y.value_counts(normalize=True)
+        minority_class_ratio = class_balance.min()
+        log.info(f"Class balance - Minority class: {minority_class_ratio:.2%}")
+        if minority_class_ratio < 0.05:
+            log.warning("Severe class imbalance detected (minority class < 5%)")
+
+        # Check feature/sample ratio
+        n_features = len(X.columns)
+        n_samples = len(X)
+        ratio = n_samples / n_features
+        log.info(f"Sample/feature ratio: {ratio:.1f} (samples per feature)")
+        if ratio < 10:
+            log.warning(f"Low sample/feature ratio ({ratio:.1f}). Risk of overfitting!")
+        elif ratio < 5:
+            log.error(
+                f"Very low sample/feature ratio ({ratio:.1f}). High overfitting risk!"
+            )
+
+        # Check feature variance
+        low_variance_mask = X.var() < 0.01
+        low_variance_features = low_variance_mask.sum()
+        if low_variance_features > 0:
+            log.info(f"Found {low_variance_features} low-variance features")
+
+        log.info("=== DATA VALIDATION COMPLETE ===")
 
     def _create_aggregated_report(
         self, all_eval_results: List[Dict[str, Any]]

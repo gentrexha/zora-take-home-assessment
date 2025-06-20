@@ -2,18 +2,18 @@
 # Churn Prediction Business Report
 
 ## 1. Executive Summary
-- **Model AUROC**: 0.511
-- **Precision at Top 10%**: 0.300
-- **Optimal Threshold (Avg. over CV)**: 0.229
+- **Model AUROC**: 0.524
+- **Precision at Top 10%**: 0.270
+- **Optimal Threshold (Avg. over CV)**: 0.306
 - **Key Insight**: The model shows a clear ability to distinguish between churning and non-churning users. By targeting the top 10% of users most likely to churn, we can focus retention efforts effectively.
 
 ## 2. Key Churn Drivers
 The top 5 features driving churn predictions are:
-  1. collection_size_variance (0.060)
-  2. data_completeness_score (0.055)
-  3. weekend_activity_ratio (0.054)
-  4. meaningful_collection_ratio (0.047)
-  5. comment_rate (0.047)
+  1. social_x_activity (0.260)
+  2. account_age_days (-0.239)
+  3. is_whale (-0.214)
+  4. collection_frequency_per_month (-0.175)
+  5. max_single_collection (0.171)
 
 ## 3. Actionable Insights
 - **High-Risk Segment**: The model has identified a high-risk segment of users. Focusing retention campaigns on this group is recommended.

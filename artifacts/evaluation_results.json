@@ -1,432 +1,148 @@
 {
-  "auroc": 0.5105833333333333,
-  "auroc_std": 0.033210411106996116,
-  "precision_at_top_k_percent": 0.3,
-  "precision_at_top_k_percent_std": 0.07071067811865475,
-  "optimal_threshold": 0.22895478926788138,
-  "model_type": "GradientBoostingClassifier",
+  "auroc": 0.5244285714285715,
+  "auroc_std": 0.05340977727336096,
+  "precision_at_top_k_percent": 0.27,
+  "precision_at_top_k_percent_std": 0.08717797887081348,
+  "optimal_threshold": 0.30590639540281805,
+  "model_type": "LogisticRegression",
   "evaluation_type": "5-Fold Cross-Validation",
   "classification_report": {
     "0": {
-      "precision": 0.9113862881304742,
-      "recall": 0.08142857142857143,
-      "f1-score": 0.13656044299329811,
+      "precision": 0.8563912630579298,
+      "recall": 0.18,
+      "f1-score": 0.26301113796407616,
       "support": 140.0
     },
     "1": {
-      "precision": 0.31068643381768357,
-      "recall": 0.9633333333333333,
-      "f1-score": 0.46920986833956946,
+      "precision": 0.325525193577108,
+      "recall": 0.9066666666666668,
+      "f1-score": 0.47594318216552856,
       "support": 60.0
     },
-    "accuracy": 0.346,
+    "accuracy": 0.398,
     "macro avg": {
-      "precision": 0.6110363609740789,
-      "recall": 0.5223809523809523,
-      "f1-score": 0.30288515566643376,
+      "precision": 0.5909582283175189,
+      "recall": 0.5433333333333333,
+      "f1-score": 0.36947716006480236,
       "support": 200.0
     },
     "weighted avg": {
-      "precision": 0.731176331836637,
-      "recall": 0.346,
-      "f1-score": 0.2363552705971795,
+      "precision": 0.6971314422136832,
+      "recall": 0.398,
+      "f1-score": 0.32689075122451183,
       "support": 200.0
     }
   },
   "confusion_matrix": [
     [
-      57,
-      643
+      126,
+      574
     ],
     [
-      11,
-      289
+      28,
+      272
     ]
   ],
   "feature_importance": [
     {
-      "feature": "collection_size_variance",
-      "importance": 0.0595018578298582
-    },
-    {
-      "feature": "data_completeness_score",
-      "importance": 0.054533194984689344
-    },
-    {
-      "feature": "weekend_activity_ratio",
-      "importance": 0.05374866564829885
-    },
-    {
-      "feature": "meaningful_collection_ratio",
-      "importance": 0.04726095049408916
-    },
-    {
-      "feature": "comment_rate",
-      "importance": 0.046717332047886743
-    },
-    {
-      "feature": "collection_frequency_per_month",
-      "importance": 0.04268988427545035
-    },
-    {
-      "feature": "social_engagement_score",
-      "importance": 0.04006569381380909
+      "feature": "social_x_activity",
+      "importance": 0.2601393725878665
     },
     {
       "feature": "account_age_days",
-      "importance": 0.03994705699936507
-    },
-    {
-      "feature": "collection_size_p90",
-      "importance": 0.03779073080623455
-    },
-    {
-      "feature": "collection_size_p75",
-      "importance": 0.035151652769340284
-    },
-    {
-      "feature": "media_type_diversity_score",
-      "importance": 0.032203248187957195
-    },
-    {
-      "feature": "avg_collection_size",
-      "importance": 0.029066860245998527
-    },
-    {
-      "feature": "collection_burst_frequency",
-      "importance": 0.02830509894179775
-    },
-    {
-      "feature": "collection_diversity_ratio",
-      "importance": 0.027083365776681814
-    },
-    {
-      "feature": "time_between_collections_std",
-      "importance": 0.02542135176006012
-    },
-    {
-      "feature": "chain_concentration_ratio",
-      "importance": 0.022685224010482542
-    },
-    {
-      "feature": "social_x_activity",
-      "importance": 0.020510371894042777
-    },
-    {
-      "feature": "collections_last_90_days",
-      "importance": 0.019921571299899004
-    },
-    {
-      "feature": "Ethereum",
-      "importance": 0.019216649340392175
-    },
-    {
-      "feature": "recent_activity_ratio",
-      "importance": 0.019048974306478138
-    },
-    {
-      "feature": "collection_size_p25",
-      "importance": 0.017960257144049557
-    },
-    {
-      "feature": "early_adopter_score",
-      "importance": 0.016437617927020663
-    },
-    {
-      "feature": "Base",
-      "importance": 0.015401022031872758
-    },
-    {
-      "feature": "gif",
-      "importance": 0.015206265375329165
-    },
-    {
-      "feature": "longest_recent_gap_90d",
-      "importance": 0.015081547197857098
-    },
-    {
-      "feature": "collections_last_30_days",
-      "importance": 0.013502033693916981
-    },
-    {
-      "feature": "country_Japan",
-      "importance": 0.013465878339413958
-    },
-    {
-      "feature": "days_active",
-      "importance": 0.013356203827618924
-    },
-    {
-      "feature": "recent_vs_historical_ratio",
-      "importance": 0.012865451875235457
-    },
-    {
-      "feature": "collection_size_p50",
-      "importance": 0.012241765468500353
-    },
-    {
-      "feature": "activity_decline_30_60_days",
-      "importance": 0.012160677798734853
-    },
-    {
-      "feature": "Zora",
-      "importance": 0.010653397614907715
-    },
-    {
-      "feature": "image",
-      "importance": 0.010454118984078213
-    },
-    {
-      "feature": "missing_token_ids_count",
-      "importance": 0.008688853828806515
-    },
-    {
-      "feature": "total_collections",
-      "importance": 0.007945993836742696
-    },
-    {
-      "feature": "primary_chain_Zora",
-      "importance": 0.007663713709826945
-    },
-    {
-      "feature": "country_France",
-      "importance": 0.0073133703824327274
-    },
-    {
-      "feature": "primary_media_type_gif",
-      "importance": 0.006972693135384664
-    },
-    {
-      "feature": "video",
-      "importance": 0.00683020228139607
-    },
-    {
-      "feature": "collections_last_60_days",
-      "importance": 0.006440433786467131
-    },
-    {
-      "feature": "avg_collected_per_day_active",
-      "importance": 0.006418523495382328
-    },
-    {
-      "feature": "referral_source_twitter",
-      "importance": 0.006250531881703712
-    },
-    {
-      "feature": "audio",
-      "importance": 0.00601674366517628
-    },
-    {
-      "feature": "Arbitrum",
-      "importance": 0.005858880997072666
-    },
-    {
-      "feature": "primary_chain_Arbitrum",
-      "importance": 0.004885425682755048
-    },
-    {
-      "feature": "time_between_collections_avg",
-      "importance": 0.00486002491048078
-    },
-    {
-      "feature": "referral_source_some random wallet address",
-      "importance": 0.0048044982148637205
-    },
-    {
-      "feature": "country_Australia",
-      "importance": 0.0038918775876850983
-    },
-    {
-      "feature": "bio_length",
-      "importance": 0.0034807585510951895
-    },
-    {
-      "feature": "total_number_collected",
-      "importance": 0.0032990071952765
-    },
-    {
-      "feature": "primary_chain_Ethereum",
-      "importance": 0.0032719577356547023
-    },
-    {
-      "feature": "top_10_pct_collection_size",
-      "importance": 0.0029933351423167658
-    },
-    {
-      "feature": "creator_loyalty_ratio",
-      "importance": 0.002688928370072221
-    },
-    {
-      "feature": "days_since_first_collection",
-      "importance": 0.002599885207275935
-    },
-    {
-      "feature": "primary_chain_Base",
-      "importance": 0.0021345423370514203
-    },
-    {
-      "feature": "total_social_links",
-      "importance": 0.0013950782463352444
-    },
-    {
-      "feature": "country_Other",
-      "importance": 0.0011845753846139219
-    },
-    {
-      "feature": "primary_media_type_audio",
-      "importance": 0.0011037611474192593
-    },
-    {
-      "feature": "primary_media_type_image",
-      "importance": 0.0010992348037261205
+      "importance": -0.23941496508930907
     },
     {
       "feature": "is_whale",
-      "importance": 6.0700798758474786e-05
+      "importance": -0.21416238115182085
     },
     {
-      "feature": "high_volume_collections",
-      "importance": 3.4171203260831874e-05
-    },
-    {
-      "feature": "dormancy_periods_60d",
-      "importance": 2.997189490228118e-05
+      "feature": "collection_frequency_per_month",
+      "importance": -0.1750071267957264
     },
     {
       "feature": "max_single_collection",
-      "importance": 2.4370025166259043e-05
-    },
-    {
-      "feature": "country_UK",
-      "importance": 2.3401960194061124e-05
-    },
-    {
-      "feature": "unique_collections",
-      "importance": 2.1098244474423585e-05
-    },
-    {
-      "feature": "linked_farcaster",
-      "importance": 1.589923965895971e-05
-    },
-    {
-      "feature": "primary_media_type_video",
-      "importance": 1.3125141409150154e-05
-    },
-    {
-      "feature": "country_Canada",
-      "importance": 6.729904469758841e-06
-    },
-    {
-      "feature": "referral_source_other",
-      "importance": 6.365403241265718e-06
-    },
-    {
-      "feature": "linked_instagram",
-      "importance": 5.520024848158926e-06
-    },
-    {
-      "feature": "referral_source_farcaster",
-      "importance": 3.503101030125962e-06
-    },
-    {
-      "feature": "no_social_links_risk",
-      "importance": 2.8139761579971796e-06
-    },
-    {
-      "feature": "linked_twitter",
-      "importance": 1.3595931393218762e-06
-    },
-    {
-      "feature": "referral_source_discord",
-      "importance": 1.0905242947891704e-06
-    },
-    {
-      "feature": "declining_activity_trend",
-      "importance": 1.0373379211145381e-06
-    },
-    {
-      "feature": "days_since_last_collection",
-      "importance": 3.739871190167145e-08
-    },
-    {
-      "feature": "referral_source_nan",
-      "importance": 0.0
-    },
-    {
-      "feature": "country_nan",
-      "importance": 0.0
-    },
-    {
-      "feature": "primary_chain_nan",
-      "importance": 0.0
-    },
-    {
-      "feature": "missing_dates_count",
-      "importance": 0.0
-    },
-    {
-      "feature": "has_display_name",
-      "importance": 0.0
-    },
-    {
-      "feature": "has_bio",
-      "importance": 0.0
-    },
-    {
-      "feature": "multi_chain_user",
-      "importance": 0.0
-    },
-    {
-      "feature": "long_gap_since_last_collection",
-      "importance": 0.0
-    },
-    {
-      "feature": "single_chain_risk",
-      "importance": 0.0
+      "importance": 0.17125117849603813
     },
     {
       "feature": "low_engagement_flag",
-      "importance": 0.0
+      "importance": 0.1683256483511899
     },
     {
-      "feature": "is_dormant_60d",
-      "importance": 0.0
+      "feature": "top_10_pct_collection_size",
+      "importance": -0.15386095677708325
     },
     {
-      "feature": "is_dormant_30d",
-      "importance": 0.0
+      "feature": "country_France",
+      "importance": -0.15304650401784975
     },
     {
-      "feature": "is_dormant_14d",
-      "importance": 0.0
+      "feature": "total_social_links",
+      "importance": -0.14024856740308228
     },
     {
-      "feature": "unique_chains",
-      "importance": 0.0
-    },
-    {
-      "feature": "has_username",
-      "importance": 0.0
+      "feature": "primary_media_type_gif",
+      "importance": 0.11864088758573552
     },
     {
       "feature": "unique_file_types",
-      "importance": 0.0
+      "importance": -0.11453756017362322
     },
     {
-      "feature": "unique_creators",
-      "importance": 0.0
+      "feature": "linked_farcaster",
+      "importance": 0.10276447672307239
     },
     {
-      "feature": "total_comments",
-      "importance": 0.0
+      "feature": "referral_source_farcaster",
+      "importance": 0.1024485701620247
+    },
+    {
+      "feature": "primary_chain_Arbitrum",
+      "importance": 0.09939732027342461
+    },
+    {
+      "feature": "country_Japan",
+      "importance": 0.08374178895115923
+    },
+    {
+      "feature": "primary_chain_Ethereum",
+      "importance": 0.050165159653193896
+    },
+    {
+      "feature": "country_UK",
+      "importance": 0.03479518565606307
+    },
+    {
+      "feature": "early_adopter_score",
+      "importance": -0.030886042950023562
+    },
+    {
+      "feature": "days_since_last_collection",
+      "importance": 0.029629236886509838
+    },
+    {
+      "feature": "no_social_links_risk",
+      "importance": -0.027693749834828415
     },
     {
       "feature": "collection_gaps_count_30d",
-      "importance": 0.0
+      "importance": 0.025028652211530895
     },
     {
-      "feature": "primary_media_type_nan",
-      "importance": 0.0
+      "feature": "country_Other",
+      "importance": -0.017448001936706564
+    },
+    {
+      "feature": "social_engagement_score",
+      "importance": 0.00994092947571365
+    },
+    {
+      "feature": "referral_source_other",
+      "importance": -0.009927188765048325
+    },
+    {
+      "feature": "primary_chain_Zora",
+      "importance": -0.005087256697625292
     }
   ]
 }

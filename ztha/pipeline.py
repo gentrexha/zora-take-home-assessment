@@ -67,9 +67,7 @@ class ChurnPredictor:
         log.success("=== PIPELINE COMPLETED ===")
         log.info("Key output files:")
         log.info("  • predictions.csv - Individual user predictions and probabilities")
-        log.info("  • business_metrics.json - Business-focused performance metrics")
         log.info("  • feature_importance.csv - Model interpretability insights")
-        log.info("  • model_summary.json - Technical model performance summary")
 
 
 def main():
