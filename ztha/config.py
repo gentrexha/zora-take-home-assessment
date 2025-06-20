@@ -181,7 +181,7 @@ class EvaluationConfig(BaseModel):
         default=0.1,
         ge=0.01,
         le=0.5,
-        description="Percentage for Precision@TopK metric (e.g., 0.1 for top 10%)",
+        description="Percentage for Recall@TopK metric (e.g., 0.1 for top 10%)",
     )
     save_predictions: bool = Field(
         default=True, description="Save individual predictions to CSV"

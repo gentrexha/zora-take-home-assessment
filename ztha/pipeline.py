@@ -26,7 +26,7 @@ class ChurnPredictor:
         pipeline_info = {
             "model_type": CONFIG.model.model_type,
             "evaluation_strategy": "5-Fold Stratified Cross-Validation",
-            "business_metric": f"Precision@Top{CONFIG.evaluation.precision_at_k_percent * 100:.0f}%",
+            "business_metric": f"Recall@Top{CONFIG.evaluation.precision_at_k_percent * 100:.0f}%",
             "artifacts_path": CONFIG.artifacts_path,
         }
         log.log_metrics(pipeline_info, "Pipeline Configuration")
@@ -57,7 +57,7 @@ class ChurnPredictor:
         final_summary = {
             "mean_auroc": cv_results["auroc"],
             "auroc_std": cv_results.get("auroc_std", "N/A"),
-            f"mean_precision_at_top_{CONFIG.evaluation.precision_at_k_percent * 100:.0f}_percent": cv_results[
+            f"mean_recall_at_top_{CONFIG.evaluation.precision_at_k_percent * 100:.0f}_percent": cv_results[
                 "precision_at_top_k_percent"
             ],
             "artifacts_saved_to": CONFIG.artifacts_path,
