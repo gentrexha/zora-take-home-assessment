@@ -7,8 +7,8 @@ collector churn, with a focus on interpretability and business actionability.
 
 from ztha.config import CONFIG, log
 from ztha.dataset import DataLoader
-from ztha.evaluator import ModelEvaluator
 from ztha.features import FeatureEngineer
+from ztha.modeling.predict import ModelEvaluator
 from ztha.modeling.train import ModelTrainer
 
 
