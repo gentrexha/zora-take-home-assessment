@@ -9,7 +9,7 @@ from ztha.config import CONFIG, log
 from ztha.dataset import DataLoader
 from ztha.evaluator import ModelEvaluator
 from ztha.features import FeatureEngineer
-from ztha.model_trainer import ModelTrainer
+from ztha.modeling.train import ModelTrainer
 
 
 class ChurnPredictor:

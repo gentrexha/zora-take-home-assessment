@@ -34,6 +34,9 @@ class FeatureEngineer:
         log.debug("Adding behavioral features...")
         features = self._add_behavioral_features(features, activity)
 
+        log.debug("Adding creator features...")
+        features = self._add_creator_features(features, activity)
+
         log.debug("Adding collector profile features...")
         features = self._add_collector_profile_features(features, collectors)
 
@@ -176,13 +179,60 @@ class FeatureEngineer:
             .rename("file_type_concentration")  # type: ignore
         )
 
+        # Activity regularity (std dev of days between activities)
+        activity_regularity = (
+            activity.sort_values("date")
+            .groupby("wallet_address")["date"]
+            .apply(lambda x: x.diff().dt.days.std(ddof=0))
+        )
+        activity_regularity.name = "activity_regularity_std"
+
+        # Weekend activity ratio
+        weekend_activity_ratio = activity.groupby("wallet_address")["date"].apply(
+            lambda x: (pd.to_datetime(x).dt.dayofweek >= 5).mean()
+        )
+        weekend_activity_ratio.name = "weekend_activity_ratio"
+
         # Combine behavioral features
         behavioral_features = pd.concat(
-            [recent_activity, chain_activity, file_type_activity], axis=1
+            [
+                recent_activity,
+                chain_activity,
+                file_type_activity,
+                activity_regularity,
+                weekend_activity_ratio,
+            ],
+            axis=1,
         )
         behavioral_features = behavioral_features.fillna(0)
 
         return features.join(behavioral_features, how="left").fillna(0)
+
+    def _add_creator_features(
+        self, features: pd.DataFrame, activity: pd.DataFrame
+    ) -> pd.DataFrame:
+        """Add creator-based features from activity data."""
+        if "creator" not in activity.columns:
+            features["is_creator"] = 0
+            features["creations_count"] = 0
+            features["creator_popularity_score"] = 0
+            return features
+
+        creator_stats = activity.groupby("creator").agg(
+            creations_count=("token_id", "nunique"),
+            creator_popularity_score=("number_collected", "sum"),
+        )
+        creator_stats.index.name = "wallet_address"
+
+        features = features.join(creator_stats, how="left")
+
+        features["is_creator"] = (~features["creations_count"].isna()).astype(int)
+
+        features[["creations_count", "creator_popularity_score"]] = features[
+            ["creations_count", "creator_popularity_score"]
+        ].fillna(0)
+
+        return features
 
     def _add_collector_profile_features(
         self, features: pd.DataFrame, collectors: pd.DataFrame
