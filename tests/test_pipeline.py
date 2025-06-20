@@ -27,7 +27,7 @@ def mock_pipeline_dependencies(mocker: MockerFixture):
     mock_model_trainer.return_value.train_and_evaluate_with_cv.return_value = (
         mocker.MagicMock(),  # Dummy model
         mocker.MagicMock(),  # Dummy scaler
-        {"auroc": 0.9, "precision_at_top_k_percent": 0.8},  # Dummy cv_results
+        {"auroc": 0.9, "recall_at_top_k_percent": 0.8},  # Dummy cv_results
     )
 
     # Configure the evaluator attribute

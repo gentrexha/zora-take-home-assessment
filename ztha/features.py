@@ -96,7 +96,7 @@ class FeatureEngineer:
         # Method 1: Remove low-variance features (constant or nearly constant)
         variances = X.var()
         high_variance_mask = variances > CONFIG.features.variance_threshold
-        high_variance_features = high_variance_mask[high_variance_mask].index.tolist()
+        high_variance_features = X.columns[high_variance_mask].tolist()
         log.info(
             f"Removed {len(X.columns) - len(high_variance_features)} low-variance features"
         )
@@ -106,7 +106,7 @@ class FeatureEngineer:
         # Method 2: Correlation-based filtering (remove highly correlated features)
         corr_matrix = X_filtered.corr().abs()
         upper_triangle = corr_matrix.where(
-            np.triu(np.ones(corr_matrix.shape), k=1).astype(bool), other=0.0
+            np.triu(np.ones(corr_matrix.shape), k=1).astype(bool)
         )
         high_corr_features = [
             column
@@ -143,7 +143,7 @@ class FeatureEngineer:
         )
         log.info(f"Top selected features: {selected_feature_names[:10]}")
 
-        return final_features
+        return pd.DataFrame(final_features)
 
     def _add_profile_features(self, features: pd.DataFrame) -> pd.DataFrame:
         """Adds basic profile features from the collectors table."""
@@ -470,15 +470,6 @@ class FeatureEngineer:
                 features["collections_last_30_days"] / features["total_collections"]
             )
             features["multi_chain_user"] = (features["unique_chains"] > 1).astype(int)
-
-        # Composite score example
-        features["social_engagement_score"] = features["comment_rate"].fillna(0) * (
-            1 + features["total_social_links"]
-        )
-
-        features["social_x_activity"] = (
-            features["total_social_links"] * features["total_collections"]
-        )
 
         return features
 

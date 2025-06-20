@@ -38,7 +38,7 @@ def test_train_and_evaluate_with_cv(
     expected_keys = [
         "evaluation_type",
         "model_type",
-        "precision_at_top_k_percent",
+        "recall_at_top_k_percent",
         "auroc",
         "classification_report",
         "feature_importance",
@@ -48,7 +48,11 @@ def test_train_and_evaluate_with_cv(
         assert key in cv_results, f"Key '{key}' missing from cv_results"
 
     # 3. Check specific result values
-    assert cv_results["evaluation_type"] == "5-Fold Cross-Validation"
+    assert cv_results["evaluation_type"] == "cross_validation"
+    assert isinstance(cv_results["auroc"], float)
+    assert 0.0 <= cv_results["auroc"] <= 1.0
+    assert isinstance(cv_results["recall_at_top_k_percent"], float)
+    assert 0.0 <= cv_results["recall_at_top_k_percent"] <= 1.0
     # Model type is stored as the class name, not the config string
     expected_class_name = (
         "GradientBoostingClassifier"

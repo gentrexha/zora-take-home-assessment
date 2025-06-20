@@ -190,19 +190,19 @@ class ModelTrainer:
         # Aggregate results
         mean_auroc = np.mean([res["auroc"] for res in all_eval_results])
         std_auroc = np.std([res["auroc"] for res in all_eval_results])
-        mean_precision_at_k = np.mean(
-            [res["precision_at_top_k_percent"] for res in all_eval_results]
+        mean_recall_at_k = np.mean(
+            [res["recall_at_top_k_percent"] for res in all_eval_results]
         )
-        std_precision_at_k = np.std(
-            [res["precision_at_top_k_percent"] for res in all_eval_results]
+        std_recall_at_k = np.std(
+            [res["recall_at_top_k_percent"] for res in all_eval_results]
         )
 
         log.log_metrics(  # type: ignore
             {
                 "mean_auroc": mean_auroc,
                 "std_auroc": std_auroc,
-                "mean_precision_at_k": mean_precision_at_k,
-                "std_precision_at_k": std_precision_at_k,
+                "mean_recall_at_k": mean_recall_at_k,
+                "std_recall_at_k": std_recall_at_k,
             },
             "CV Results",
         )
@@ -270,7 +270,7 @@ class ModelTrainer:
             [np.isinf(X[col]).sum() for col in X.columns], index=X.columns
         )
         if inf_counts.any():
-            inf_features_count = (inf_counts > 0).sum()
+            inf_features_count = (inf_counts > 0).sum()  # type: ignore
             log.warning(f"Found infinite values in {inf_features_count} features")
 
         # Check class balance
@@ -294,7 +294,7 @@ class ModelTrainer:
 
         # Check feature variance
         low_variance_mask = X.var() < 0.01
-        low_variance_features = low_variance_mask.sum()
+        low_variance_features = low_variance_mask.sum()  # type: ignore
         if low_variance_features > 0:
             log.info(f"Found {low_variance_features} low-variance features")
 
@@ -303,34 +303,30 @@ class ModelTrainer:
     def _create_aggregated_report(
         self, all_eval_results: List[Dict[str, Any]]
     ) -> Dict[str, Any]:
-        """Aggregate evaluation results from all folds into a single report."""
-        log.debug("Aggregating results from all folds...")
-        # Use the report from the first fold as a template for metadata
-        report = {
+        """Create an aggregated report from all fold evaluation results."""
+        # Average key metrics
+        final_report = {
+            "auroc": np.mean([r["auroc"] for r in all_eval_results]),
+            "auroc_std": np.std([r["auroc"] for r in all_eval_results]),
+            "recall_at_top_k_percent": np.mean(
+                [r["recall_at_top_k_percent"] for r in all_eval_results]
+            ),
+            "recall_at_top_k_percent_std": np.std(
+                [r["recall_at_top_k_percent"] for r in all_eval_results]
+            ),
+            "optimal_threshold": np.mean(
+                [r["optimal_threshold"] for r in all_eval_results]
+            ),
             "model_type": all_eval_results[0]["model_type"],
-            "evaluation_type": "5-Fold Cross-Validation",
-            # Keep one sample PR curve for visualization
+            "evaluation_type": "cross_validation",
             "precision_recall_curve": all_eval_results[0]["precision_recall_curve"],
         }
-
-        # Calculate mean and std for key metrics
-        report["auroc"] = np.mean([res["auroc"] for res in all_eval_results])
-        report["auroc_std"] = np.std([res["auroc"] for res in all_eval_results])
-        report["precision_at_top_k_percent"] = np.mean(
-            [res["precision_at_top_k_percent"] for res in all_eval_results]
-        )
-        report["precision_at_top_k_percent_std"] = np.std(
-            [res["precision_at_top_k_percent"] for res in all_eval_results]
-        )
-        report["optimal_threshold"] = np.mean(
-            [res["optimal_threshold"] for res in all_eval_results]
-        )
 
         # Sum confusion matrices
         total_cm = np.sum(
             [np.array(res["confusion_matrix"]) for res in all_eval_results], axis=0
         )
-        report["confusion_matrix"] = total_cm.tolist()
+        final_report["confusion_matrix"] = total_cm.tolist()
 
         # Average classification reports
         avg_class_report = all_eval_results[0]["classification_report"].copy()
@@ -349,9 +345,9 @@ class ModelTrainer:
                     for res in all_eval_results
                 ]
                 avg_class_report[class_label] = np.mean(values)
-        report["classification_report"] = avg_class_report
+        final_report["classification_report"] = avg_class_report
 
-        return report
+        return final_report
 
 
 @app.command()

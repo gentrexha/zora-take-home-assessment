@@ -75,11 +75,11 @@ class ModelEvaluator:
         auroc = roc_auc_score(y, y_pred_proba)
         report = classification_report(y, y_pred, output_dict=True)
         cm = confusion_matrix(y, y_pred)
-        precision_at_k = self._precision_at_top_k(y, y_pred_proba)
+        recall_at_k = self._recall_at_top_k(y, y_pred_proba)
 
         evaluation_results = {
             "auroc": auroc,
-            "precision_at_top_k_percent": precision_at_k,
+            "recall_at_top_k_percent": recall_at_k,
             "classification_report": report,
             "confusion_matrix": cm.tolist(),
             "optimal_threshold": optimal_threshold,
@@ -128,11 +128,9 @@ class ModelEvaluator:
         report_data = {
             "auroc": evaluation_results["auroc"],
             "auroc_std": evaluation_results.get("auroc_std"),
-            "precision_at_top_k_percent": evaluation_results[
-                "precision_at_top_k_percent"
-            ],
-            "precision_at_top_k_percent_std": evaluation_results.get(
-                "precision_at_top_k_percent_std"
+            "recall_at_top_k_percent": evaluation_results["recall_at_top_k_percent"],
+            "recall_at_top_k_percent_std": evaluation_results.get(
+                "recall_at_top_k_percent_std"
             ),
             "optimal_threshold": evaluation_results["optimal_threshold"],
             "model_type": evaluation_results["model_type"],
@@ -148,22 +146,28 @@ class ModelEvaluator:
 
         log.success(f"Artifacts saved to {self.artifacts_dir}")
 
-    def _precision_at_top_k(self, y_true: pd.Series, y_pred_proba: np.ndarray) -> float:
-        """Calculate Precision@Top K% based on the value in the project config."""
-        k_fraction = CONFIG.evaluation.precision_at_k_percent
+    def _recall_at_top_k(self, y_true: pd.Series, y_pred_proba: np.ndarray) -> float:
+        """Calculate Recall@Top K% based on the value in the project config."""
+        k_fraction = CONFIG.evaluation.recall_at_k_percent
         if not (0 < k_fraction <= 1):
-            raise ValueError("precision_at_k_percent must be between 0 and 1")
+            raise ValueError("recall_at_k_percent must be between 0 and 1")
 
         top_k = int(len(y_true) * k_fraction)
         if top_k == 0:
             log.warning(
                 f"Top k% ({k_fraction * 100:.1f}%) resulted in 0 users. "
-                "Returning precision of 0. Consider a larger dataset or k%."
+                "Returning recall of 0. Consider a larger dataset or k%."
             )
             return 0.0
 
         top_indices = np.argsort(y_pred_proba)[-top_k:]
-        return float(y_true.iloc[top_indices].mean())
+        true_positives_in_top_k = y_true.iloc[top_indices].sum()
+        total_positives = y_true.sum()
+
+        if total_positives == 0:
+            return 1.0 if true_positives_in_top_k == 0 else 0.0
+
+        return float(true_positives_in_top_k / total_positives)
 
     def _get_feature_importance(
         self, model: Any, feature_names: List[str]
@@ -188,7 +192,7 @@ class ModelEvaluator:
     def generate_business_report(self, evaluation_results: Dict[str, Any]) -> str:
         """Generate a business-friendly summary report."""
         auroc = evaluation_results["auroc"]
-        precision_at_k = evaluation_results["precision_at_top_k_percent"]
+        recall_at_k = evaluation_results["recall_at_top_k_percent"]
         # Ensure 'feature_importance' is a DataFrame
         feature_importance_df = pd.DataFrame(evaluation_results["feature_importance"])
         top_features = feature_importance_df.head(5)
@@ -205,9 +209,9 @@ class ModelEvaluator:
 
 ## 1. Executive Summary
 - **Model AUROC**: {auroc:.3f}
-- **Precision at Top {CONFIG.evaluation.precision_at_k_percent * 100:.0f}%**: {precision_at_k:.3f}
+- **Recall at Top {CONFIG.evaluation.recall_at_k_percent * 100:.0f}%**: {recall_at_k:.3f}
 - **Optimal Threshold (Avg. over CV)**: {evaluation_results.get("optimal_threshold", "N/A"):.3f}
-- **Key Insight**: The model shows a clear ability to distinguish between churning and non-churning users. By targeting the top {CONFIG.evaluation.precision_at_k_percent * 100:.0f}% of users most likely to churn, we can focus retention efforts effectively.
+- **Key Insight**: The model shows a clear ability to distinguish between churning and non-churning users. By targeting the top {CONFIG.evaluation.recall_at_k_percent * 100:.0f}% of users most likely to churn, we can focus retention efforts effectively.
 
 ## 2. Key Churn Drivers
 The top 5 features driving churn predictions are:

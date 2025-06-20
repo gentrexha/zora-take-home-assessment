@@ -9,7 +9,7 @@ from typing import Literal
 
 from loguru import logger
 import numpy as np
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 
 
 class LoggingConfig(BaseModel):
@@ -22,7 +22,7 @@ class LoggingConfig(BaseModel):
     )
     colorize: bool = Field(default=True, description="Enable colored output")
 
-    @validator("level")
+    @field_validator("level")
     def validate_level(cls, v):
         valid_levels = [
             "TRACE",
@@ -177,10 +177,13 @@ class ModelConfig(BaseModel):
 class EvaluationConfig(BaseModel):
     """Evaluation configuration."""
 
-    precision_at_k_percent: float = Field(
-        default=0.1,
-        ge=0.01,
-        le=0.5,
+    # Name of the business metric to be displayed in the report
+    business_metric: str = Field(
+        "Recall@Top10%", description="Primary metric for business reports"
+    )
+    # The percentile of collectors to target for recall calculation
+    recall_at_k_percent: float = Field(
+        0.1,
         description="Percentage for Recall@TopK metric (e.g., 0.1 for top 10%)",
     )
     save_predictions: bool = Field(
@@ -200,21 +203,14 @@ class PipelineConfig(BaseModel):
     random_seed: int = Field(default=42, description="Global random seed")
 
     # Sub-configurations
-    logging: LoggingConfig = Field(
-        default_factory=LoggingConfig, description="Logging configuration"
-    )
-    data: DataConfig = Field(
-        default_factory=DataConfig, description="Data loading configuration"
-    )
-    features: FeatureConfig = Field(
-        default_factory=FeatureConfig, description="Feature engineering configuration"
-    )
-    model: ModelConfig = Field(
-        default_factory=ModelConfig, description="Model training configuration"
-    )
-    evaluation: EvaluationConfig = Field(
-        default_factory=EvaluationConfig, description="Evaluation configuration"
-    )
+    logging: LoggingConfig = Field(default_factory=LoggingConfig)
+    data: DataConfig = Field(default_factory=DataConfig)
+    features: FeatureConfig = Field(default_factory=FeatureConfig)
+    model: ModelConfig = Field(default_factory=ModelConfig)
+    evaluation: EvaluationConfig = Field(default_factory=EvaluationConfig)
+
+    class Config:
+        validate_assignment = True
 
     def model_post_init(self, __context):
         """Ensure artifacts directory exists and setup logging."""
