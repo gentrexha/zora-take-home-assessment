@@ -188,33 +188,32 @@ class ModelEvaluator:
 
             # Save model summary with key business metrics
             log.debug("Saving model summary...")
+            is_cv = (
+                evaluation_results.get("evaluation_type") == "5-Fold Cross-Validation"
+            )
             summary = {
                 "model_type": evaluation_results["model_type"],
-                "auroc": evaluation_results["auroc"],
-                "precision_at_top_k_percent": evaluation_results[
+                "evaluation_strategy": "5-Fold CV" if is_cv else "Train-Test Split",
+                "mean_auroc": evaluation_results["auroc"],
+                "auroc_std": evaluation_results.get("auroc_std"),
+                "mean_precision_at_top_k_percent": evaluation_results[
                     "precision_at_top_k_percent"
                 ],
+                "precision_at_top_k_percent_std": evaluation_results.get(
+                    "precision_at_top_k_percent_std"
+                ),
                 "precision_at_k_description": evaluation_results[
                     "precision_at_k_description"
                 ],
-                "overall_precision": evaluation_results["classification_report"]["1"][  # type: ignore
-                    "precision"
-                ],
-                "overall_recall": evaluation_results["classification_report"]["1"][  # type: ignore
-                    "recall"
-                ],
-                "overall_f1": evaluation_results["classification_report"]["1"][  # type: ignore
-                    "f1-score"
-                ],
                 "total_features": len(evaluation_results["feature_importance"]),
-                "test_set_size": evaluation_results["test_set_size"],
+                "dataset_size": evaluation_results["test_set_size"],
                 "training_timestamp": evaluation_results["evaluation_timestamp"],
                 "top_5_features": evaluation_results["feature_importance"]
                 .head(5)
                 .to_dict("records"),
                 "config_summary": {
                     "model_type": CONFIG.model.model_type,
-                    "test_size": CONFIG.model.test_size,
+                    "test_size": "N/A (CV)" if is_cv else CONFIG.model.test_size,
                     "precision_at_k_percent": CONFIG.evaluation.precision_at_k_percent,
                     "whale_percentile": CONFIG.features.whale_percentile,
                     "recent_activity_days": CONFIG.features.recent_activity_days,
@@ -227,11 +226,24 @@ class ModelEvaluator:
 
             # Create a business-friendly metrics file
             log.debug("Saving business metrics...")
+            auroc_std_str = (
+                f" ± {evaluation_results['auroc_std']:.3f}"
+                if "auroc_std" in evaluation_results
+                else ""
+            )
+            prec_std_str = (
+                f" ± {evaluation_results['precision_at_top_k_percent_std']:.3f}"
+                if "precision_at_top_k_percent_std" in evaluation_results
+                else ""
+            )
             business_metrics = {
                 "key_performance_indicators": {
-                    "model_discriminative_power_auroc": f"{evaluation_results['auroc']:.3f}",
-                    "precision_for_top_risk_users": f"{evaluation_results['precision_at_top_k_percent']:.3f}",
-                    "description": f"Of users flagged as top {CONFIG.evaluation.precision_at_k_percent * 100:.0f}% churn risk, {evaluation_results['precision_at_top_k_percent']:.1%} actually churned",
+                    "evaluation_strategy": "5-Fold Cross-Validation"
+                    if is_cv
+                    else "Single Train-Test Split",
+                    "model_discriminative_power_auroc": f"{evaluation_results['auroc']:.3f}{auroc_std_str}",
+                    "precision_for_top_risk_users": f"{evaluation_results['precision_at_top_k_percent']:.3f}{prec_std_str}",
+                    "description": f"Of users flagged as top {CONFIG.evaluation.precision_at_k_percent * 100:.0f}% churn risk, an average of {evaluation_results['precision_at_top_k_percent']:.1%} actually churned.",
                 },
                 "actionable_insights": {
                     "total_high_risk_users_identified": evaluation_results[
@@ -246,14 +258,15 @@ class ModelEvaluator:
                     .tolist(),
                 },
                 "model_deployment_readiness": {
-                    "auroc_threshold_met": evaluation_results["auroc"]
-                    >= 0.7,  # Typical business threshold
+                    "auroc_threshold_met": evaluation_results["auroc"] >= 0.7,
                     "precision_threshold_met": evaluation_results[
                         "precision_at_top_k_percent"
                     ]
                     >= 0.5,
-                    "ready_for_production": evaluation_results["auroc"] >= 0.7
-                    and evaluation_results["precision_at_top_k_percent"] >= 0.5,
+                    "ready_for_production": (
+                        evaluation_results["auroc"] >= 0.7
+                        and evaluation_results["precision_at_top_k_percent"] >= 0.5
+                    ),
                 },
             }
 
@@ -285,29 +298,45 @@ class ModelEvaluator:
         auroc = evaluation_results["auroc"]
         precision_at_k = evaluation_results["precision_at_top_k_percent"]
         top_features = evaluation_results["feature_importance"].head(5)
+        is_cv = evaluation_results.get("evaluation_type") == "5-Fold Cross-Validation"
+
+        auroc_std_str = (
+            f" (± {evaluation_results['auroc_std']:.3f})"
+            if "auroc_std" in evaluation_results
+            else ""
+        )
+        prec_std_str = (
+            f" (± {evaluation_results['precision_at_top_k_percent_std']:.2%})"
+            if "precision_at_top_k_percent_std" in evaluation_results
+            else ""
+        )
 
         report = f"""
 COLLECTOR CHURN PREDICTION - MODEL PERFORMANCE SUMMARY
 =====================================================
 
+METHODOLOGY
+• Evaluation Strategy: {"5-Fold Stratified Cross-Validation" if is_cv else "Single Train-Test Split"}
+• This approach provides a more robust estimate of model performance.
+
 📊 KEY BUSINESS METRICS
-• Model Accuracy (AUROC): {auroc:.3f} {"✅ Strong" if auroc >= 0.8 else "⚠️ Moderate" if auroc >= 0.7 else "❌ Weak"}
-• Precision@Top{CONFIG.evaluation.precision_at_k_percent * 100:.0f}%: {precision_at_k:.3f} ({precision_at_k:.1%})
-• Interpretation: Of users flagged as highest churn risk, {precision_at_k:.1%} actually churn
+• Mean Model Accuracy (AUROC): {auroc:.3f}{auroc_std_str} {"✅ Strong" if auroc >= 0.8 else "⚠️ Moderate" if auroc >= 0.7 else "❌ Weak"}
+• Mean Precision@Top{CONFIG.evaluation.precision_at_k_percent * 100:.0f}%: {precision_at_k:.1%}{prec_std_str}
+• Interpretation: Of users flagged as highest churn risk, we can expect {precision_at_k:.1%} to actually churn on average.
 
 🎯 ACTIONABILITY
-• Target {evaluation_results["top_k_sample_size"]} users for retention campaigns
+• Target {evaluation_results["top_k_sample_size"]} users for retention campaigns (based on a single data split)
 • Expected to capture ~{int(precision_at_k * evaluation_results["top_k_sample_size"])} churners
 • Focus interventions on top risk factors below
 
-🔍 TOP CHURN DRIVERS
+🔍 TOP CHURN DRIVERS (from final model trained on all data)
 """
         for i, (_, row) in enumerate(top_features.iterrows(), 1):
             report += f"  {i}. {row['feature']}: {row['importance']:.3f}\n"
 
         report += f"""
 📈 BUSINESS IMPACT POTENTIAL
-• Current model can identify {precision_at_k:.1%} of high-risk churners accurately
+• Current model can identify {precision_at_k:.1%} of high-risk churners with good reliability.
 • Recommended for {"immediate deployment" if auroc >= 0.8 and precision_at_k >= 0.6 else "pilot testing" if auroc >= 0.7 else "further development"}
 • Focus retention efforts on top {CONFIG.evaluation.precision_at_k_percent * 100:.0f}% risk users for maximum ROI
 

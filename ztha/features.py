@@ -57,6 +57,9 @@ class FeatureEngineer:
         log.debug("Adding derived and interaction features...")
         features = self._add_derived_features(features)
 
+        log.debug("Encoding categorical features...")
+        features = self._encode_categorical_features(features)
+
         log.debug("Cleaning final features...")
         features = self._clean_features(features)
 
@@ -86,6 +89,10 @@ class FeatureEngineer:
         for col in social_cols:
             features[col] = self.collectors_df[col].astype(int)
         features["total_social_links"] = self.collectors_df[social_cols].sum(axis=1)
+
+        # Geographic & Acquisition (to be one-hot encoded later)
+        features["country"] = self.collectors_df["country"]
+        features["referral_source"] = self.collectors_df["referral_source"]
 
         return features
 
@@ -147,6 +154,12 @@ class FeatureEngineer:
             media_counts, how="left"
         )
 
+        # Primary chain and media type
+        if not chain_counts.empty:
+            wallet_activity["primary_chain"] = chain_counts.idxmax(axis=1)
+        if not media_counts.empty:
+            wallet_activity["primary_media_type"] = media_counts.idxmax(axis=1)
+
         # Media type diversity
         wallet_activity["media_type_diversity_score"] = self.activity_df.groupby(
             "wallet_address"
@@ -193,6 +206,28 @@ class FeatureEngineer:
         features["time_between_collections_std"] = time_diffs.groupby(
             self.activity_df["wallet_address"]
         ).std()
+        features["collection_gaps_count_30d"] = (
+            time_diffs[time_diffs > 30]
+            .groupby(self.activity_df["wallet_address"])
+            .count()
+        )
+        features["dormancy_periods_60d"] = (
+            time_diffs[time_diffs > 60]
+            .groupby(self.activity_df["wallet_address"])
+            .count()
+        )
+
+        # Collection Burst Frequency
+        daily_counts = (
+            self.activity_df.groupby(["wallet_address", "date"]).size().reset_index()
+        )
+        daily_counts.columns = ["wallet_address", "date", "counts"]
+        burst_days = (
+            daily_counts[daily_counts["counts"] > 1]
+            .groupby("wallet_address")["date"]
+            .count()
+        )
+        features["collection_burst_frequency"] = burst_days
 
         # Weekend vs Weekday
         features["weekend_activity_ratio"] = self.activity_df.groupby("wallet_address")[
@@ -218,6 +253,7 @@ class FeatureEngineer:
     def _add_value_proxy_features(self, features: pd.DataFrame) -> pd.DataFrame:
         """Adds features related to the economic value of collections."""
         assert self.activity_df is not None
+        assert self.collectors_df is not None
         # High Volume Collections
         features["high_volume_collections"] = (
             self.activity_df[self.activity_df["number_collected"] > 100]
@@ -295,6 +331,7 @@ class FeatureEngineer:
 
     def _add_derived_features(self, features: pd.DataFrame) -> pd.DataFrame:
         """Add derived and interaction features."""
+        assert self.collectors_df is not None
         # Ratios (handle division by zero)
         with np.errstate(divide="ignore", invalid="ignore"):
             features["collection_frequency_per_month"] = features[
@@ -316,6 +353,42 @@ class FeatureEngineer:
             1 + features["total_social_links"]
         )
 
+        features["social_x_activity"] = (
+            features["total_social_links"] * features["total_collections"]
+        )
+
+        return features
+
+    def _encode_categorical_features(self, features: pd.DataFrame) -> pd.DataFrame:
+        """Handles one-hot encoding for categorical features."""
+        assert self.collectors_df is not None
+        # For high cardinality, group rare categories into 'Other'
+        for col in ["country", "referral_source"]:
+            if col in features.columns:
+                top_cats = features[col].value_counts().nlargest(5).index.tolist()
+                features[col] = features[col].where(
+                    features[col].isin(top_cats), "Other"
+                )
+
+        # Apply one-hot encoding
+        categorical_cols = [
+            "country",
+            "referral_source",
+            "primary_chain",
+            "primary_media_type",
+        ]
+        # Filter out columns that might not exist if activity is empty
+        cols_to_encode = [col for col in categorical_cols if col in features.columns]
+        features = pd.get_dummies(
+            features, columns=cols_to_encode, prefix=cols_to_encode, dummy_na=True
+        )
+
+        # Re-align index with the original collectors DataFrame to ensure consistency
+        # This adds wallets that might not have had any activity and removes wallets
+        # that might have been in activity logs but not in the collectors table.
+        assert self.collectors_df is not None
+        features = features.reindex(self.collectors_df.index.tolist())
+
         return features
 
     def _clean_features(self, features: pd.DataFrame) -> pd.DataFrame:
@@ -330,6 +403,10 @@ class FeatureEngineer:
 
         # Fill NaNs. This can be improved with more sophisticated imputation.
         for col in features.columns:
+            # Convert boolean columns created by get_dummies to int
+            if features[col].dtype == "bool":
+                features[col] = features[col].astype(int)
+
             if features[col].dtype in [np.number, "float64", "int64"]:
                 features[col] = features[col].fillna(0)  # Simple fill with 0 for now
 

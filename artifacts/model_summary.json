@@ -1,39 +1,39 @@
 {
   "model_type": "GradientBoostingClassifier",
-  "auroc": 0.569047619047619,
-  "precision_at_top_k_percent": 0.35,
+  "evaluation_strategy": "5-Fold CV",
+  "mean_auroc": 0.4875238095238095,
+  "auroc_std": 0.022560908991272294,
+  "mean_precision_at_top_k_percent": 0.3,
+  "precision_at_top_k_percent_std": 0.06324555320336757,
   "precision_at_k_description": "Precision@Top10%",
-  "overall_precision": 0.2857142857142857,
-  "overall_recall": 0.06666666666666667,
-  "overall_f1": 0.10810810810810811,
-  "total_features": 36,
-  "test_set_size": 200,
-  "training_timestamp": "2025-06-20T13:50:30.442713",
+  "total_features": 90,
+  "dataset_size": 200,
+  "training_timestamp": "2025-06-20T16:08:26.884480",
   "top_5_features": [
     {
-      "feature": "file_type_concentration",
-      "importance": 0.10548086964255418
+      "feature": "weekend_activity_ratio",
+      "importance": 0.0625812307219705
     },
     {
-      "feature": "collected_volatility",
-      "importance": 0.10334710258439404
+      "feature": "comment_rate",
+      "importance": 0.05533226273447512
     },
     {
-      "feature": "creator_diversity",
-      "importance": 0.07807884031881474
+      "feature": "meaningful_collection_ratio",
+      "importance": 0.048771243226231054
     },
     {
-      "feature": "collection_diversity",
-      "importance": 0.07468524824256406
+      "feature": "social_engagement_score",
+      "importance": 0.04752284873017463
     },
     {
-      "feature": "account_age_days",
-      "importance": 0.07185537718951902
+      "feature": "collection_size_variance",
+      "importance": 0.04654981864214429
     }
   ],
   "config_summary": {
     "model_type": "gradient_boosting",
-    "test_size": 0.2,
+    "test_size": "N/A (CV)",
     "precision_at_k_percent": 0.1,
     "whale_percentile": 0.8,
     "recent_activity_days": 30

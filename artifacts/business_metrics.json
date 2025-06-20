@@ -1,21 +1,22 @@
 {
   "key_performance_indicators": {
-    "model_discriminative_power_auroc": "0.569",
-    "precision_for_top_risk_users": "0.350",
-    "description": "Of users flagged as top 10% churn risk, 35.0% actually churned"
+    "evaluation_strategy": "5-Fold Cross-Validation",
+    "model_discriminative_power_auroc": "0.488 \u00b1 0.023",
+    "precision_for_top_risk_users": "0.300 \u00b1 0.063",
+    "description": "Of users flagged as top 10% churn risk, an average of 30.0% actually churned."
   },
   "actionable_insights": {
     "total_high_risk_users_identified": 20,
-    "expected_churners_in_high_risk_group": 7,
+    "expected_churners_in_high_risk_group": 6,
     "top_churn_drivers": [
-      "file_type_concentration",
-      "collected_volatility",
-      "creator_diversity"
+      "weekend_activity_ratio",
+      "comment_rate",
+      "meaningful_collection_ratio"
     ]
   },
   "model_deployment_readiness": {
-    "auroc_threshold_met": false,
-    "precision_threshold_met": false,
-    "ready_for_production": false
+    "auroc_threshold_met": "False",
+    "precision_threshold_met": "False",
+    "ready_for_production": "False"
   }
 }
