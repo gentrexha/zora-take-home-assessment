@@ -1,0 +1,11 @@
+wallet_address,account_created_at,username,display_name,bio,linked_farcaster,linked_instagram,linked_twitter,country,referral_source,churned_at_date
+0x1,2023-01-01T00:00:00Z,userone,User One,Bio for user one,1,0,1,USA,twitter,
+0x2,2023-03-15T00:00:00Z,,User Two,,0,0,0,UK,organic,2023-09-01T00:00:00Z
+0x3,2023-05-20T00:00:00Z,userthree,User Three,Another bio,1,1,1,USA,friend,
+0x4,2023-02-10T00:00:00Z,userfour,User Four,,0,1,0,DE,organic,2023-10-01T00:00:00Z
+0x5,2023-04-05T00:00:00Z,userfive,User Five,Bio 5,1,0,0,USA,twitter,2023-11-01T00:00:00Z
+0x6,2023-06-01T00:00:00Z,usersix,User Six,,0,0,1,UK,friend,2023-12-01T00:00:00Z
+0x7,2023-07-11T00:00:00Z,userseven,User Seven,Bio 7,0,1,1,USA,organic,2023-12-15T00:00:00Z
+0x8,2023-08-01T00:00:00Z,usereight,User Eight,,1,1,0,DE,twitter,
+0x9,2023-01-25T00:00:00Z,usernine,User Nine,Bio 9,0,0,0,UK,friend,
+0xA,2023-03-30T00:00:00Z,userten,User Ten,,1,1,1,USA,organic,2024-01-01T00:00:00Z 

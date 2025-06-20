@@ -51,3 +51,9 @@ extend-select = ["I"]  # Add import sorting
 [tool.ruff.lint.isort]
 known-first-party = ["ztha"]
 force-sort-within-sections = true
+
+[dependency-groups]
+dev = [
+    "pytest-cov>=6.2.1",
+    "pytest-mock>=3.14.1",
+]

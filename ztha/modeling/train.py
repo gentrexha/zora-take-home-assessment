@@ -143,6 +143,7 @@ class ModelTrainer:
         final_report["feature_importance"] = self.evaluator._get_feature_importance(
             final_model, self.feature_names
         )
+        final_report["feature_names"] = self.feature_names
 
         return final_model, self.scaler, final_report
 
@@ -151,32 +152,51 @@ class ModelTrainer:
     ) -> Dict[str, Any]:
         """Aggregate evaluation results from all folds into a single report."""
         log.debug("Aggregating results from all folds...")
-        # Use the report from the first fold as a template
-        report = all_eval_results[0].copy()
+        # Use the report from the first fold as a template for metadata
+        report = {
+            "model_type": all_eval_results[0]["model_type"],
+            "evaluation_type": "5-Fold Cross-Validation",
+            # Keep one sample PR curve for visualization
+            "precision_recall_curve": all_eval_results[0]["precision_recall_curve"],
+        }
 
         # Calculate mean and std for key metrics
         report["auroc"] = np.mean([res["auroc"] for res in all_eval_results])
+        report["auroc_std"] = np.std([res["auroc"] for res in all_eval_results])
         report["precision_at_top_k_percent"] = np.mean(
             [res["precision_at_top_k_percent"] for res in all_eval_results]
         )
-        # Add std to description
-        report["evaluation_type"] = "5-Fold Cross-Validation"
-        report["auroc_std"] = np.std([res["auroc"] for res in all_eval_results])
         report["precision_at_top_k_percent_std"] = np.std(
             [res["precision_at_top_k_percent"] for res in all_eval_results]
         )
+        report["optimal_threshold"] = np.mean(
+            [res["optimal_threshold"] for res in all_eval_results]
+        )
 
-        # Average classification reports (a bit simplified)
-        for class_label, metrics in report["classification_report"].items():
+        # Sum confusion matrices
+        total_cm = np.sum(
+            [np.array(res["confusion_matrix"]) for res in all_eval_results], axis=0
+        )
+        report["confusion_matrix"] = total_cm.tolist()
+
+        # Average classification reports
+        avg_class_report = all_eval_results[0]["classification_report"].copy()
+        for class_label, metrics in avg_class_report.items():
             if isinstance(metrics, dict):
                 for metric_name in metrics:
                     values = [
                         res["classification_report"][class_label][metric_name]
                         for res in all_eval_results
                     ]
-                    report["classification_report"][class_label][metric_name] = np.mean(
-                        values
-                    )
+                    avg_class_report[class_label][metric_name] = np.mean(values)
+            else:
+                # Handle top-level metrics like 'accuracy'
+                values = [
+                    res["classification_report"][class_label]
+                    for res in all_eval_results
+                ]
+                avg_class_report[class_label] = np.mean(values)
+        report["classification_report"] = avg_class_report
 
         return report
 

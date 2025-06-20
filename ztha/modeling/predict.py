@@ -98,47 +98,72 @@ class ModelEvaluator:
         scaler: StandardScaler,
         evaluation_results: Dict[str, Any],
     ):
-        """Save all model artifacts."""
-        log.info("Saving artifacts...")
+        """
+        Save all model artifacts using the aggregated results from cross-validation.
+        """
+        log.info("Saving artifacts from aggregated CV results...")
 
+        # Save the final model and the scaler fit on all data
         joblib.dump(model, self.artifacts_dir / "churn_model.pkl")
         joblib.dump(scaler, self.artifacts_dir / "feature_scaler.pkl")
 
-        feature_names = list(scaler.get_feature_names_out())  # type: ignore
+        # Save feature names from the evaluation report
+        feature_names = evaluation_results["feature_names"]
         with open(self.artifacts_dir / "feature_names.json", "w") as f:
             json.dump(feature_names, f, indent=2)
 
-        feature_importance_df = self._get_feature_importance(model, feature_names)
+        # Save feature importance from the evaluation report
+        # It might be a DataFrame or a list of dicts, handle both
+        feature_importance_data = evaluation_results["feature_importance"]
+        if isinstance(feature_importance_data, pd.DataFrame):
+            feature_importance_df = feature_importance_data
+        else:
+            feature_importance_df = pd.DataFrame(feature_importance_data)
+
         feature_importance_df.to_csv(
             self.artifacts_dir / "feature_importance.csv", index=False
         )
 
+        # Structure and save the final evaluation summary
         report_data = {
             "auroc": evaluation_results["auroc"],
+            "auroc_std": evaluation_results.get("auroc_std"),
             "precision_at_top_k_percent": evaluation_results[
                 "precision_at_top_k_percent"
             ],
+            "precision_at_top_k_percent_std": evaluation_results.get(
+                "precision_at_top_k_percent_std"
+            ),
             "optimal_threshold": evaluation_results["optimal_threshold"],
             "model_type": evaluation_results["model_type"],
+            "evaluation_type": evaluation_results.get("evaluation_type"),
             "classification_report": evaluation_results["classification_report"],
             "confusion_matrix": evaluation_results["confusion_matrix"],
             "feature_importance": feature_importance_df.to_dict(orient="records"),
         }
         evaluation_path = self.artifacts_dir / "evaluation_results.json"
-        log.info(f"Saving evaluation results to {evaluation_path}")
+        log.info(f"Saving comprehensive evaluation results to {evaluation_path}")
         with open(evaluation_path, "w") as f:
             json.dump(report_data, f, indent=2, default=str)
 
         log.success(f"Artifacts saved to {self.artifacts_dir}")
 
-    def _precision_at_top_k(
-        self, y_true: pd.Series, y_pred_proba: np.ndarray, k_percent: int = 10
-    ) -> float:
-        """Calculate Precision@Top K%."""
-        # Note: k_percent is an integer from config, e.g., 10 for 10%
-        top_k = int(len(y_true) * (k_percent / 100))
+    def _precision_at_top_k(self, y_true: pd.Series, y_pred_proba: np.ndarray) -> float:
+        """Calculate Precision@Top K% based on the value in the project config."""
+        k_fraction = CONFIG.evaluation.precision_at_k_percent
+        if not (0 < k_fraction <= 1):
+            raise ValueError("precision_at_k_percent must be between 0 and 1")
+
+        top_k = int(len(y_true) * k_fraction)
+        if top_k == 0:
+            log.warning(
+                f"Top k% ({k_fraction * 100:.1f}%) resulted in 0 users. "
+                "Returning precision of 0. Consider a larger dataset or k%."
+            )
+            return 0.0
+
         top_indices = np.argsort(y_pred_proba)[-top_k:]
-        return y_true.iloc[top_indices].mean()
+        return float(y_true.iloc[top_indices].mean())
 
     def _get_feature_importance(
         self, model: Any, feature_names: List[str]
@@ -164,11 +189,14 @@ class ModelEvaluator:
         """Generate a business-friendly summary report."""
         auroc = evaluation_results["auroc"]
         precision_at_k = evaluation_results["precision_at_top_k_percent"]
-        top_features = evaluation_results["feature_importance"].head(5)
+        # Ensure 'feature_importance' is a DataFrame
+        feature_importance_df = pd.DataFrame(evaluation_results["feature_importance"])
+        top_features = feature_importance_df.head(5)
+
         top_features_str = "\n".join(
             [
-                f"  {i}. {row['feature']}: {row['importance']:.3f}"
-                for i, (_, row) in enumerate(top_features.iterrows())
+                f"  {i}. {row['feature']} ({row['importance']:.3f})"
+                for i, (_, row) in enumerate(top_features.iterrows(), 1)
             ]
         )
 
@@ -177,9 +205,9 @@ class ModelEvaluator:
 
 ## 1. Executive Summary
 - **Model AUROC**: {auroc:.3f}
-- **Precision at Top {CONFIG.evaluation.precision_at_k_percent}%**: {precision_at_k:.3f}
-- **Optimal Threshold**: {evaluation_results.get("optimal_threshold", "N/A"):.3f}
-- **Key Insight**: The model shows a clear ability to distinguish between churning and non-churning users. By targeting the top {CONFIG.evaluation.precision_at_k_percent}% of users most likely to churn, we can focus retention efforts effectively.
+- **Precision at Top {CONFIG.evaluation.precision_at_k_percent * 100:.0f}%**: {precision_at_k:.3f}
+- **Optimal Threshold (Avg. over CV)**: {evaluation_results.get("optimal_threshold", "N/A"):.3f}
+- **Key Insight**: The model shows a clear ability to distinguish between churning and non-churning users. By targeting the top {CONFIG.evaluation.precision_at_k_percent * 100:.0f}% of users most likely to churn, we can focus retention efforts effectively.
 
 ## 2. Key Churn Drivers
 The top 5 features driving churn predictions are:
